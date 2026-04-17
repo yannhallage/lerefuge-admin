@@ -1,0 +1,23 @@
+/**
+ * Thème admin — aligné sur la page de connexion (clair uniquement).
+ * Couleurs : vert #48bb95, or #d4a017, bleu nuit #1a365d, textes #333 / #999.
+ */
+:root {
+  color-scheme: light;
+
+  --admin-bg: #ffffff;
+  --admin-surface: #f8fafc;
+  --admin-surface-muted: #f1f5f9;
+  --admin-text: #333333;
+  --admin-text-muted: #999999;
+  --admin-border: #e2e8f0;
+  --admin-primary: #48bb95;
+  --admin-primary-hover: #38a169;
+  --admin-primary-soft: rgba(72, 187, 149, 0.12);
+  --admin-accent-gold: #d4a017;
+  --admin-navy: #1a365d;
+  --admin-sidebar: #f7faf9;
+  --admin-shadow: 0 4px 18px rgba(26, 54, 93, 0.08);
+  --admin-radius: 8px;
+  --admin-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}

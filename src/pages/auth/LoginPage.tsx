@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from "react"
+import { Navigate, useNavigate } from "react-router-dom"
+import { useAuth } from "@/shared/context/useAuth"
 import styles from "./LoginPage.module.css"
 
 const HERO_IMAGE = "https://lerefugedubandama.net/image3/DSC_2437.JPG"
@@ -7,9 +9,17 @@ const LOGO_ALT = "Le Refuge du Bandama"
 
 export function LoginPage() {
   const [remember, setRemember] = useState(false)
+  const { isAuthenticated, login } = useAuth()
+  const navigate = useNavigate()
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />
+  }
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    login()
+    navigate("/", { replace: true })
   }
 
   return (

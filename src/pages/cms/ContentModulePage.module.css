@@ -1,0 +1,58 @@
+@import "@/shared/styles/admin-tokens.css";
+
+.panel {
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  padding: 22px 22px 20px;
+  box-shadow: var(--admin-shadow);
+  max-width: 720px;
+}
+
+.lead {
+  margin: 0 0 12px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--admin-navy);
+}
+
+.text {
+  margin: 0 0 16px;
+  font-size: 0.875rem;
+  color: var(--admin-text-muted);
+  line-height: 1.55;
+}
+
+.listTitle {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--admin-text-muted);
+}
+
+.list {
+  margin: 0;
+  padding-left: 1.15rem;
+  font-size: 0.875rem;
+  color: var(--admin-text);
+  line-height: 1.6;
+}
+
+.list li {
+  margin-bottom: 4px;
+}
+
+.tag {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 6px 10px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--admin-primary-hover);
+  background: var(--admin-primary-soft);
+  border-radius: 999px;
+}
