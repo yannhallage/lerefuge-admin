@@ -1,0 +1,261 @@
+.shell {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  min-height: 100svh;
+  width: 100%;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #ffffff;
+  text-align: left;
+  overflow: hidden;
+}
+
+.formColumn {
+  flex: 0 0 45%;
+  max-width: 45%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 56px 48px 72px;
+  background: #ffffff;
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+}
+
+.formInner {
+  width: 100%;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.logoWrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.logo {
+  width: 108px;
+  height: 108px;
+  object-fit: contain;
+  border-radius: 50%;
+  box-shadow:
+    0 4px 18px rgba(26, 54, 93, 0.12),
+    0 0 0 1px rgba(226, 232, 240, 0.9);
+}
+
+.title {
+  margin: 0 0 8px;
+  font-size: 1.7rem;
+  font-weight: 100;
+  letter-spacing: -0.02em;
+  color: #333333;
+  line-height: 1.15;
+}
+
+.subtitle {
+  margin: 0 0 28px;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: #999999;
+  line-height: 1.5;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #333333;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: #333333;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input::placeholder {
+  color: #999999;
+}
+
+.input:focus {
+  border-color: #48bb95;
+  box-shadow: 0 0 0 3px rgba(72, 187, 149, 0.15);
+}
+
+.forgotRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -8px;
+}
+
+.link {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #d4a017;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.rememberRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+  border: none;
+  padding: 0;
+  border-radius: 999px;
+  background: #bee3f8;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.switch[data-on="true"] {
+  background: #63b3ed;
+}
+
+.switchKnob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease;
+}
+
+.switch[data-on="true"] .switchKnob {
+  transform: translateX(20px);
+}
+
+.rememberLabel {
+  font-size: 0.8125rem;
+  color: #999999;
+  user-select: none;
+}
+
+.submit {
+  margin-top: 8px;
+  width: 100%;
+  padding: 12px 18px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: #ffffff;
+  background: #48bb95;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.submit:hover {
+  background: #38a169;
+}
+
+.submit:active {
+  transform: scale(0.99);
+}
+
+.footer {
+  margin-top: 24px;
+  font-size: 0.8125rem;
+  color: #999999;
+  text-align: center;
+}
+
+.footerLink {
+  color: #d4a017;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
+}
+
+.visualColumn {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  margin-left: -72px;
+}
+
+.visual {
+  position: absolute;
+  inset: 0;
+  background-color: #1a365d;
+  background-size: cover;
+  background-position: center 35%;
+  clip-path: polygon(16% 0, 100% 0, 100% 100%, 0 100%);
+}
+
+@media (max-width: 900px) {
+  .shell {
+    overflow-y: auto;
+  }
+
+  .formColumn {
+    flex: 1 1 auto;
+    max-width: none;
+    width: 100%;
+    padding: 32px 20px 28px;
+  }
+
+  .formInner {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .logo {
+    width: 92px;
+    height: 92px;
+  }
+
+  .logoWrap {
+    margin-bottom: 18px;
+  }
+
+  .visualColumn {
+    display: none;
+  }
+}
