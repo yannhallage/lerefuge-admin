@@ -2,7 +2,9 @@ import type { ReactNode } from "react"
 import { Navigate, Route, Routes } from "react-router-dom"
 import { LoginPage } from "@/pages/auth/LoginPage"
 import { DashboardPage } from "@/pages/dashboard/DashboardPage"
-import { renderContentModule } from "@/pages/cms/contentModules"
+import { AccueilPage } from "@/pages/accueil/AccueilPage"
+import { LogementsPage } from "@/pages/logements/LogementsPage"
+import { renderContentModule } from "@/pages/content-module/contentModules"
 import { useAuth } from "@/shared/context/useAuth"
 import { AdminLayout } from "@/widgets/admin-layout/AdminLayout"
 
@@ -27,9 +29,9 @@ export function AppRoutes() {
         }
       >
         <Route index element={<DashboardPage />} />
-        <Route path="accueil" element={renderContentModule("accueil")} />
+        <Route path="accueil" element={<AccueilPage />} />
         <Route path="a-propos" element={renderContentModule("about")} />
-        <Route path="logements" element={renderContentModule("rooms")} />
+        <Route path="logements" element={<LogementsPage />} />
         <Route path="reservations" element={renderContentModule("booking")} />
         <Route path="offres" element={renderContentModule("offers")} />
         <Route path="activites" element={renderContentModule("activities")} />
