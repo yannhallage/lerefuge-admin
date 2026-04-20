@@ -4,6 +4,9 @@ import { LoginPage } from "@/pages/auth/LoginPage"
 import { DashboardPage } from "@/pages/dashboard/DashboardPage"
 import { AccueilPage } from "@/pages/accueil/AccueilPage"
 import { LogementsPage } from "@/pages/logements/LogementsPage"
+import { NouveauLogementPage } from "@/pages/logements/NouveauLogementPage"
+import { ReservationsPage } from "@/pages/reservation/ReservationsPage"
+import { GaleriePage } from "@/pages/galerie/GaleriePage"
 import { renderContentModule } from "@/pages/content-module/contentModules"
 import { useAuth } from "@/shared/context/useAuth"
 import { AdminLayout } from "@/widgets/admin-layout/AdminLayout"
@@ -32,12 +35,13 @@ export function AppRoutes() {
         <Route path="accueil" element={<AccueilPage />} />
         <Route path="a-propos" element={renderContentModule("about")} />
         <Route path="logements" element={<LogementsPage />} />
-        <Route path="reservations" element={renderContentModule("booking")} />
+        <Route path="logements/nouveau" element={<NouveauLogementPage />} />
+        <Route path="reservations" element={<ReservationsPage />} />
         <Route path="offres" element={renderContentModule("offers")} />
         <Route path="activites" element={renderContentModule("activities")} />
         <Route path="carte" element={renderContentModule("menu")} />
         <Route path="blog" element={renderContentModule("blog")} />
-        <Route path="galerie" element={renderContentModule("gallery")} />
+        <Route path="galerie" element={<GaleriePage />} />
         <Route path="contact" element={renderContentModule("contact")} />
         <Route path="seo" element={renderContentModule("seo")} />
         <Route path="parametres" element={renderContentModule("settings")} />
