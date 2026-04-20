@@ -1,0 +1,438 @@
+@import "@/shared/styles/admin-tokens.css";
+
+.formCard {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 20px 20px 18px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.formCardPage {
+  border-radius: 6px;
+  padding: 20px 20px 18px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  border-color: #e2e8f0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 560px) {
+  .formCardPage {
+    padding: 16px 14px 14px;
+  }
+}
+
+.section {
+  margin: 0 0 26px;
+  padding: 0;
+  border-bottom: none;
+}
+
+.formCard:not(.formCardPage) .section:first-of-type {
+  margin-top: 0;
+}
+
+.formCardPage .section:first-of-type {
+  margin-top: 0;
+}
+
+.sectionTitle {
+  margin: 0 0 6px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--admin-navy);
+  letter-spacing: -0.01em;
+}
+
+.sectionLead {
+  margin: 0 0 14px;
+  max-width: 62ch;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--admin-text-muted);
+}
+
+.section .formGrid,
+.section .deuxPhotos,
+.section .criteresChips,
+.section .galerieRow {
+  margin-top: 0;
+}
+
+.section .label {
+  display: block;
+  margin-bottom: 6px;
+  margin-top: 4px;
+}
+
+.formHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.formTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--admin-navy);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 160px;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+}
+
+.input,
+.textarea {
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.875rem;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 96px;
+  line-height: 1.5;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: 2px solid var(--admin-primary-soft);
+  border-color: var(--admin-primary);
+}
+
+.criteresFieldset {
+  margin: 0 0 26px;
+  padding: 0;
+  border: none;
+  min-width: 0;
+}
+
+.criteresFieldset .sectionTitle {
+  padding: 0;
+}
+
+.criteresChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.critereChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 7px 12px 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-bg);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.critereChip:hover {
+  border-color: color-mix(in srgb, var(--admin-primary) 40%, var(--admin-border));
+  background: var(--admin-surface-muted);
+}
+
+.critereChip[data-actif="true"] {
+  border-color: var(--admin-primary);
+  background: var(--admin-primary-soft);
+  color: var(--admin-navy);
+}
+
+.critereChipInput {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--admin-primary);
+  cursor: pointer;
+}
+
+.critereChipText {
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+@media (max-width: 420px) {
+  .critereChipText {
+    white-space: normal;
+  }
+}
+
+.block {
+  margin-top: 0;
+}
+
+.deuxPhotos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 8px;
+}
+
+@media (max-width: 560px) {
+  .deuxPhotos {
+    grid-template-columns: 1fr;
+  }
+}
+
+.presDrop {
+  position: relative;
+  display: block;
+  border-radius: var(--admin-radius-sm);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.presDrop:focus-within {
+  outline: 2px solid var(--admin-primary-soft);
+  outline-offset: 2px;
+}
+
+.presImg {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface-muted);
+}
+
+.presOverlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 8px 10px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-align: center;
+  color: #fff;
+  background: linear-gradient(to top, rgba(26, 54, 93, 0.78), transparent);
+}
+
+.presPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  aspect-ratio: 4 / 3;
+  border: 2px dashed var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  color: var(--admin-text-muted);
+  background: var(--admin-surface);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.presDrop:hover .presPlaceholder {
+  border-color: color-mix(in srgb, var(--admin-primary) 50%, var(--admin-border));
+  background: var(--admin-primary-soft);
+}
+
+.presPlaceholderTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--admin-navy);
+}
+
+.presPlaceholderHint {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+}
+
+.fileInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.galerieRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+  align-items: flex-start;
+}
+
+.galerieItem {
+  position: relative;
+  width: 88px;
+  height: 88px;
+}
+
+.galerieThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border);
+}
+
+.galerieRemove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  cursor: pointer;
+}
+
+.galerieRemove:hover {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.galerieAdd {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 88px;
+  height: 88px;
+  border: 2px dashed var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  color: var(--admin-text-muted);
+  font-size: 0.625rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--admin-surface);
+  overflow: hidden;
+}
+
+.galerieAdd .fileInput {
+  z-index: 1;
+}
+
+.galerieAdd:hover {
+  border-color: color-mix(in srgb, var(--admin-primary) 50%, var(--admin-border));
+  background: var(--admin-primary-soft);
+  color: var(--admin-navy);
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--admin-border);
+}
+
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--admin-primary);
+  border: none;
+  border-radius: var(--admin-radius-sm);
+  cursor: pointer;
+  box-shadow: var(--admin-shadow-card);
+}
+
+.btnPrimary:hover {
+  background: var(--admin-primary-hover);
+}
+
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  background: var(--admin-surface-muted);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  cursor: pointer;
+}
+
+.btnSecondary:hover {
+  background: var(--admin-border);
+}
+
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  color: var(--admin-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--admin-radius-sm);
+  cursor: pointer;
+}
+
+.btnGhost:hover {
+  color: var(--admin-text);
+  background: var(--admin-surface-muted);
+}

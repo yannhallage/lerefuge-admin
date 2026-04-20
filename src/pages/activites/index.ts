@@ -1,0 +1,1 @@
+export { ActivitesPage } from "./ActivitesPage"

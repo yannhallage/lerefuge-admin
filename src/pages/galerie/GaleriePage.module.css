@@ -1,0 +1,149 @@
+/** Compléments à AccueilPage.module.css (vignettes, grille) */
+
+.section {
+  margin-top: 28px;
+}
+
+.section:first-of-type {
+  margin-top: 0;
+}
+
+.sectionLead {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-navy);
+}
+
+.sectionHint {
+  margin: 0 0 14px;
+  max-width: 72ch;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--admin-text-muted);
+}
+
+.masonryGrid {
+  display: flex;
+  width: auto;
+  margin-left: -10px;
+}
+
+.masonryColumn {
+  padding-left: 10px;
+  background-clip: padding-box;
+}
+
+.masonryCard {
+  margin-bottom: 10px;
+}
+
+.masonryAspect {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background: #f8fafc;
+}
+
+.masonryCard:nth-child(6n + 1) .masonryAspect {
+  aspect-ratio: 1 / 1;
+}
+
+.masonryCard:nth-child(6n + 2) .masonryAspect {
+  aspect-ratio: 16 / 9;
+}
+
+.masonryCard:nth-child(6n + 3) .masonryAspect {
+  aspect-ratio: 3 / 4;
+}
+
+.masonryCard:nth-child(6n + 4) .masonryAspect {
+  aspect-ratio: 4 / 3;
+}
+
+.masonryCard:nth-child(6n + 5) .masonryAspect {
+  aspect-ratio: 5 / 4;
+}
+
+.masonryCard:nth-child(6n) .masonryAspect {
+  aspect-ratio: 4 / 5;
+}
+
+.masonryImg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.thumbLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.removeOnThumb {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #b91c1c;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+}
+
+.removeOnThumb:hover {
+  background: #fff;
+  color: #991b1b;
+}
+
+.inlineLink {
+  color: var(--admin-primary-hover);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.inlineLink:hover {
+  text-decoration: underline;
+}
+
+/* Même style que .uploadButton (Accueil), mais reste visible en mobile (où .uploadButton est masqué) */
+.refreshBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 16px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  background: #3448c8;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.refreshBtn:hover {
+  background: #2d3eb0;
+}
+
+@media (max-width: 560px) {
+  .refreshBtn {
+    width: 100%;
+  }
+}

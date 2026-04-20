@@ -1,16 +1,6 @@
 import { ContentModulePage, type ContentModulePageProps } from "./ContentModulePage"
 
 const modules = {
-  accueil: {
-    title: "Page d’accueil (index)",
-    description:
-      "Gestion du hero (carrousel / slides), accroches et blocs d’informations principales visibles sur la page d’accueil du site vitrine.",
-    planned: [
-      "Slides : image, titre, sous-titre, lien optionnel, ordre",
-      "Bloc infos clés (accès, services, coordonnées rapides)",
-      "Prévisualisation ou publication planifiée (selon backend)",
-    ],
-  },
   about: {
     title: "À propos",
     description:
