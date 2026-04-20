@@ -10,16 +10,13 @@ import {
   HelpCircle,
   Home,
   Images,
-  Info,
   LayoutDashboard,
   LogOut,
-  Mail,
   Menu,
   Mountain,
   Newspaper,
   Search,
   Settings,
-  Tag,
   UtensilsCrossed,
 } from "lucide-react"
 import { useAuth } from "@/shared/context/useAuth"
