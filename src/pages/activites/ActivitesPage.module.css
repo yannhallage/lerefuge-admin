@@ -1,0 +1,215 @@
+@import "@/shared/styles/admin-tokens.css";
+
+.container {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  flex: 1;
+  max-width: 620px;
+  min-width: 260px;
+  padding: 0 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-bg);
+}
+
+.searchIcon {
+  color: var(--admin-text-muted);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--admin-text);
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.viewButton {
+  min-height: 42px;
+  padding: 0 13px;
+  border: 1px solid var(--admin-border);
+  border-radius: 4px;
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.viewButton[aria-disabled="true"] {
+  opacity: 0.8;
+}
+
+.viewButtonActive {
+  border-color: color-mix(in srgb, var(--admin-primary) 45%, var(--admin-border));
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary-hover);
+}
+
+.addButton {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--admin-primary);
+  border-radius: 4px;
+  background: var(--admin-primary);
+  color: #fff;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.addButton:hover {
+  background: var(--admin-primary-hover);
+  border-color: var(--admin-primary-hover);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  padding: 13px 14px;
+  text-align: left;
+  border-top: 1px solid var(--admin-border);
+  font-size: 0.78rem;
+  color: var(--admin-text);
+}
+
+.table thead th {
+  border-top: none;
+  background: var(--admin-surface-muted);
+  color: var(--admin-text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.actionCell {
+  width: 96px;
+  text-align: right;
+}
+
+.actionHeader {
+  text-align: right;
+  width: 96px;
+}
+
+.actionButtons {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.iconButton {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--admin-border);
+  border-radius: 4px;
+  background: #fff;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  color: var(--admin-navy);
+  background: var(--admin-surface);
+}
+
+.iconButtonDanger {
+  color: #dc2626;
+}
+
+.iconButtonDanger:hover {
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.emptyCell {
+  padding: 18px 14px;
+  text-align: center;
+  color: var(--admin-text-muted);
+  font: inherit;
+}
+
+.table tbody tr:hover td {
+  background: var(--admin-surface);
+}
+
+.table tbody tr:first-child td {
+  border-top: none;
+}
+
+@media (max-width: 900px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+
+  .viewButton,
+  .addButton {
+    flex: 1;
+  }
+
+  .table th,
+  .table td {
+    padding: 11px 12px;
+  }
+
+  .actionCell,
+  .actionHeader {
+    width: 88px;
+  }
+
+  .actionButtons {
+    gap: 6px;
+  }
+
+  .iconButton {
+    width: 30px;
+    height: 30px;
+  }
+}

@@ -44,12 +44,12 @@ export function ReservationsPage() {
     if (!q) return liste
     return liste.filter((r) => {
       const bloc = [
-        r.id,
+        // r.id,
         r.nomClient,
-        r.email,
+        // r.email,
         r.telephone,
-        r.typeChambre,
-        r.message,
+        // r.typeChambre,
+        // r.message,
         LIBELLES_STATUT[r.statut],
         formatDateIso(r.dateArrivee),
         formatDateIso(r.dateDepart),
@@ -161,38 +161,38 @@ export function ReservationsPage() {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th scope="col">ID</th>
+                  {/* <th scope="col">ID</th> */}
                   <th scope="col">Arrivée</th>
                   <th scope="col">Départ</th>
-                  <th scope="col">Adultes</th>
+                  {/* <th scope="col">Adultes</th>
                   <th scope="col">Enfants</th>
-                  <th scope="col">Chambres</th>
+                  <th scope="col">Chambres</th> */}
                   <th scope="col">Type de chambre</th>
                   <th scope="col">Nom</th>
-                  <th scope="col">E-mail</th>
+                  {/* <th scope="col">E-mail</th> */}
                   <th scope="col">Téléphone</th>
-                  <th scope="col">Message</th>
+                  {/* <th scope="col">Message</th> */}
                   <th scope="col">Statut</th>
                 </tr>
               </thead>
               <tbody>
                 {filtres.map((r) => (
-                  <tr key={r.id}>
-                    <td className={styles.cellMuted}>{r.id}</td>
+                  <tr key={r.dateArrivee + r.dateDepart + r.nomClient + r.email + r.telephone + r.typeChambre + r.message + r.statut}>
+                    {/* <td className={styles.cellMuted}>{r.id}</td> */}
                     <td>{formatDateIso(r.dateArrivee)}</td>
                     <td>{formatDateIso(r.dateDepart)}</td>
-                    <td className={styles.cellMuted}>{r.adultes}</td>
+                    {/* <td className={styles.cellMuted}>{r.adultes}</td>
                     <td className={styles.cellMuted}>{r.enfants}</td>
-                    <td className={styles.cellMuted}>{r.nombreChambres}</td>
+                    <td className={styles.cellMuted}>{r.nombreChambres}</td> */}
                     <td>{r.typeChambre}</td>
                     <td>{r.nomClient}</td>
-                    <td>
+                    {/* <td>
                       <a href={`mailto:${r.email}`}>{r.email}</a>
-                    </td>
+                    </td> */}
                     <td>
-                      <a href={`tel:${r.telephone.replace(/\s/g, "")}`}>{r.telephone}</a>
+                      {r.telephone}
                     </td>
-                    <td>
+                    {/* <td>
                       {r.message ? (
                         <span className={styles.cellEllipsis} title={r.message}>
                           {r.message}
@@ -200,7 +200,7 @@ export function ReservationsPage() {
                       ) : (
                         <span className={styles.cellMuted}>—</span>
                       )}
-                    </td>
+                    </td> */}
                     <td>
                       <span className={`${styles.statutBadge} ${classeStatut(r.statut)}`}>
                         {LIBELLES_STATUT[r.statut]}

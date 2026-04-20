@@ -1,9 +1,9 @@
 import { useId } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
-import { CreateLogementForm } from "./createLogement"
-import { loadLogements, saveLogements } from "./logementStorage"
-import listStyles from "./LogementsPage.module.css"
+import { CreateLogementForm } from "../createLogement"
+import { loadLogements, saveLogements } from "../logementStorage"
+import listStyles from "../LogementsPage.module.css"
 import pageStyles from "./NouveauLogementPage.module.css"
 
 export function NouveauLogementPage() {

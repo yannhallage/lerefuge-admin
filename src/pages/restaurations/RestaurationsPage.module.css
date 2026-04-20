@@ -3,6 +3,7 @@
 .wrap {
   width: 100%;
   max-width: 100%;
+  --text-size: 0.75rem;
 }
 
 .intro {
@@ -11,7 +12,7 @@
 
 .introTitle {
   margin: 0 0 8px;
-  font-size: 0.9375rem;
+  font-size: var(--text-size);
   font-weight: 600;
   color: var(--admin-navy);
 }
@@ -19,7 +20,7 @@
 .introText {
   margin: 0;
   max-width: 72ch;
-  font-size: 0.8125rem;
+  font-size: var(--text-size);
   line-height: 1.55;
   color: var(--admin-text-muted);
 }
@@ -34,41 +35,25 @@
 
 .breadcrumb {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: var(--text-size);
   color: var(--admin-text);
-  min-width: 0;
 }
 
 .breadcrumbMuted {
   color: var(--admin-text-muted);
 }
 
-.breadcrumbLink {
-  color: inherit;
-  font: inherit;
-  text-decoration: none;
-}
-
-.breadcrumbLink:hover {
-  color: var(--admin-navy);
-  text-decoration: underline;
-}
-
 .breadcrumbSep {
   margin: 0 6px;
   color: var(--admin-text-muted);
-  font-weight: 500;
 }
 
 .quickSearchBtn {
   display: none;
-  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
-  margin: 0;
-  padding: 0;
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-sm);
   background: var(--admin-bg);
@@ -85,9 +70,8 @@
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
-  padding: 14px 14px 12px;
+  padding: 14px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-  margin-bottom: 0;
 }
 
 .searchRow {
@@ -105,7 +89,6 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  box-sizing: border-box;
   width: 100%;
   min-height: 40px;
   padding: 0 12px;
@@ -117,11 +100,9 @@
 .search:focus-within {
   border-color: #94a3b8;
   outline: 1px solid #cbd5e1;
-  outline-offset: 0;
 }
 
 .searchIcon {
-  flex-shrink: 0;
   color: var(--admin-text-muted);
 }
 
@@ -130,14 +111,10 @@
   min-width: 0;
   border: none;
   background: transparent;
-  font: inherit;
-  font-size: 0.8125rem;
-  color: var(--admin-text);
   outline: none;
-}
-
-.queryInput::placeholder {
-  color: #94a3b8;
+  font: inherit;
+  font-size: var(--text-size);
+  color: var(--admin-text);
 }
 
 .addWrap {
@@ -173,130 +150,17 @@
 
 .summaryText {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: var(--text-size);
+  line-height: 1.45;
   color: var(--admin-text);
 }
 
 .summaryText strong {
   color: var(--admin-navy);
-  font-weight: 600;
-}
-
-.summaryLead {
-  font-weight: 500;
 }
 
 .summarySub {
   color: var(--admin-text-muted);
-  font-weight: 400;
-}
-
-.summaryQuery {
-  font-weight: 600;
-  color: var(--admin-navy);
-}
-
-.fab {
-  display: none;
-  position: fixed;
-  right: max(16px, env(safe-area-inset-right, 0px));
-  bottom: max(20px, env(safe-area-inset-bottom, 0px));
-  z-index: 40;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: #266d40;
-  color: #fff;
-  cursor: pointer;
-  box-shadow:
-    0 4px 14px rgba(38, 109, 64, 0.45),
-    0 2px 6px rgba(15, 23, 42, 0.12);
-}
-
-.fab:hover {
-  background: #1d5230;
-}
-
-.fab:focus-visible {
-  outline: 2px solid #93c5fd;
-  outline-offset: 3px;
-}
-
-@media (max-width: 560px) {
-  .searchRow {
-    flex-direction: column;
-  }
-
-  .uploadButton {
-    width: 100%;
-  }
-}
-
-@media (max-width: 960px) {
-  .intro {
-    display: none;
-  }
-
-  .breadcrumbRow {
-    margin-bottom: 10px;
-  }
-
-  .quickSearchBtn {
-    display: inline-flex;
-  }
-
-  .toolbarTop {
-    border: none;
-    border-radius: 0;
-    padding: 12px 0 10px;
-    margin-left: -14px;
-    margin-right: -14px;
-    padding-left: 14px;
-    padding-right: 14px;
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .searchRow {
-    flex-direction: column;
-    margin-bottom: 0;
-  }
-
-  .search {
-    min-height: 44px;
-    padding: 0 14px;
-    border-radius: 999px;
-    border-color: #e2e8f0;
-    background: #fff;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  }
-
-  .uploadButton {
-    display: none;
-  }
-
-  .summaryBar {
-    margin: 10px 0 14px;
-  }
-
-  .summaryText {
-    font-size: 0.75rem;
-    line-height: 1.45;
-  }
-
-  .summarySub {
-    display: block;
-    margin-top: 4px;
-  }
-
-  .fab {
-    display: inline-flex;
-  }
 }
 
 .grid {
@@ -329,11 +193,13 @@
 }
 
 .cardHero {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   aspect-ratio: 4 / 3;
-  object-fit: cover;
-  background: #0f172a;
+  background: linear-gradient(135deg, #273640 0%, #334b5a 48%, #1d2830 100%);
+  color: #e2e8f0;
 }
 
 .cardBadge {
@@ -353,35 +219,6 @@
   background: linear-gradient(135deg, #b8944a 0%, #c9a85c 48%, #a8843d 100%);
   border-radius: 3px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
-}
-
-.cardDeleteFab {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  padding: 0;
-  color: #fff;
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  cursor: pointer;
-  backdrop-filter: blur(6px);
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.15s ease;
-}
-
-.cardDeleteFab:hover {
-  background: rgba(185, 28, 28, 0.92);
-  border-color: rgba(255, 255, 255, 0.35);
-  transform: scale(1.04);
 }
 
 .cardMediaBar {
@@ -443,6 +280,20 @@
   overflow: hidden;
 }
 
+.cardMetaRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.cardMetaLabel {
+  font-size: 0.6875rem;
+  color: rgba(248, 250, 252, 0.62);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .cardCta {
   display: flex;
   align-items: center;
@@ -487,15 +338,56 @@
   opacity: 0.9;
 }
 
-.cardCtaPer {
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
-  color: rgba(248, 250, 252, 0.55);
+.fab {
+  display: none;
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #266d40;
+  color: #fff;
+  cursor: pointer;
+  box-shadow:
+    0 4px 14px rgba(38, 109, 64, 0.45),
+    0 2px 6px rgba(15, 23, 42, 0.12);
 }
 
-.cardCta:hover .cardCtaPer {
-  color: rgba(212, 181, 110, 0.75);
+.fab:hover {
+  background: #1d5230;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+  padding: 2px 8px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+.badgeDisponible {
+  color: #14532d;
+  background: #dcfce7;
+}
+
+.badgeRupture {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.badgeMasque {
+  color: #1e3a8a;
+  background: #dbeafe;
 }
 
 .empty {
@@ -525,15 +417,14 @@
 
 .emptyTitle {
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: var(--text-size);
   font-weight: 600;
   color: var(--admin-navy);
 }
 
 .emptyText {
   margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.55;
+  font-size: var(--text-size);
   color: var(--admin-text-muted);
 }
 
@@ -541,7 +432,7 @@
   margin-top: 8px;
   padding: 9px 18px;
   font: inherit;
-  font-size: 0.75rem;
+  font-size: var(--text-size);
   font-weight: 600;
   color: var(--admin-navy);
   background: var(--admin-surface-muted);
@@ -550,6 +441,48 @@
   cursor: pointer;
 }
 
-.emptyAction:hover {
-  background: var(--admin-border);
+@media (max-width: 960px) {
+  .intro {
+    display: none;
+  }
+
+  .quickSearchBtn {
+    display: inline-flex;
+  }
+
+  .toolbarTop {
+    border: none;
+    border-radius: 0;
+    padding: 12px 0 10px;
+    margin-left: -14px;
+    margin-right: -14px;
+    padding-left: 14px;
+    padding-right: 14px;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .searchRow {
+    flex-direction: column;
+    margin-bottom: 0;
+  }
+
+  .search {
+    min-height: 44px;
+    border-radius: 999px;
+    border-color: #e2e8f0;
+  }
+
+  .uploadButton {
+    display: none;
+  }
+
+  .summarySub {
+    display: block;
+    margin-top: 4px;
+  }
+
+  .fab {
+    display: inline-flex;
+  }
 }

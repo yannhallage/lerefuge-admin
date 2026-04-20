@@ -10,7 +10,7 @@
 
 .greeting {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--admin-navy);
@@ -23,7 +23,7 @@
 
 .subtitle {
   margin: 8px 0 0;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   color: var(--admin-text-muted);
   line-height: 1.55;
   max-width: 52ch;
@@ -50,7 +50,7 @@
 }
 
 .sectionTitle {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: var(--admin-navy);
 }
@@ -96,7 +96,7 @@ details[open] .sectionChevron {
 }
 
 .k {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: var(--admin-text-muted);
 }
@@ -106,14 +106,14 @@ details[open] .sectionChevron {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--admin-text);
 }
 
 .code {
   font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   background: var(--admin-surface-muted);
   padding: 4px 10px;
@@ -157,7 +157,7 @@ details[open] .sectionChevron {
   align-items: center;
   justify-content: center;
   padding: 10px 18px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   font-family: inherit;
   color: #fff;
@@ -191,14 +191,14 @@ details[open] .sectionChevron {
 
 .cardEyebrow {
   margin: 0 0 8px;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--admin-text-muted);
 }
 
 .cardStat {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--admin-navy);
 }
@@ -216,14 +216,14 @@ details[open] .sectionChevron {
 
 .cardPercent {
   margin: 8px 0 14px;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--admin-text-muted);
 }
 
 .secondaryBtn {
   display: inline-block;
   padding: 6px 12px;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   font-family: inherit;
   color: var(--admin-text-muted);
@@ -250,20 +250,20 @@ details[open] .sectionChevron {
 
 .planLabel {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: var(--admin-navy);
 }
 
 .planHint {
   margin: 6px 0 16px;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--admin-text-muted);
 }
 
 .primaryBtnInline {
   padding: 10px 18px;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   font-family: inherit;
   color: #fff;
@@ -284,7 +284,7 @@ details[open] .sectionChevron {
 
 .filter {
   padding: 0 0 6px;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
   font-family: inherit;
   color: var(--admin-text-muted);
@@ -336,21 +336,21 @@ details[open] .sectionChevron {
 
 .metricLabel {
   margin: 0 0 6px;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: var(--admin-text-muted);
 }
 
 .metricValue {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--admin-navy);
 }
 
 .metricHint {
   margin: 4px 0 0;
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   color: var(--admin-text-muted);
 }
 
@@ -360,7 +360,7 @@ details[open] .sectionChevron {
 }
 
 .link {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--admin-primary-hover);
   text-decoration: none;
@@ -379,7 +379,7 @@ details[open] .sectionChevron {
   border-radius: var(--admin-radius);
   border: 1px dashed rgba(72, 187, 149, 0.45);
   background: var(--admin-primary-soft);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--admin-navy);
   line-height: 1.5;
 }

@@ -1,0 +1,160 @@
+@import "@/shared/styles/admin-tokens.css";
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--admin-navy);
+}
+
+.back:hover {
+  text-decoration: underline;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editBtn,
+.deleteBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid var(--admin-border);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.editBtn {
+  background: #fff;
+  color: var(--admin-navy);
+}
+
+.editBtn:hover {
+  background: var(--admin-surface-muted);
+}
+
+.deleteBtn {
+  background: #fff5f5;
+  color: #b42318;
+  border-color: #fecaca;
+}
+
+.deleteBtn:hover {
+  background: #fee2e2;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  margin-bottom: 18px;
+}
+
+.hero {
+  display: block;
+  width: 100%;
+  max-height: 380px;
+  object-fit: cover;
+  background: #0f172a;
+}
+
+.content {
+  padding: 16px;
+}
+
+.price {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #3448c8;
+}
+
+.title {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: var(--admin-navy);
+}
+
+.description {
+  margin: 0 0 12px;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--admin-text);
+}
+
+.criteres {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.critere {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--admin-surface-muted);
+  border: 1px solid var(--admin-border);
+  font-size: 0.6875rem;
+  color: var(--admin-text);
+}
+
+.noCritere {
+  margin: 0 0 14px;
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
+  gap: 8px;
+}
+
+.galleryItem {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface-muted);
+}
+
+@media (max-width: 720px) {
+  .topRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .editBtn,
+  .deleteBtn {
+    flex: 1;
+    justify-content: center;
+  }
+}

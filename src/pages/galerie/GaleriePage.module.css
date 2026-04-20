@@ -23,6 +23,61 @@
   color: var(--admin-text-muted);
 }
 
+.masonryGrid {
+  display: flex;
+  width: auto;
+  margin-left: -10px;
+}
+
+.masonryColumn {
+  padding-left: 10px;
+  background-clip: padding-box;
+}
+
+.masonryCard {
+  margin-bottom: 10px;
+}
+
+.masonryAspect {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background: #f8fafc;
+}
+
+.masonryCard:nth-child(6n + 1) .masonryAspect {
+  aspect-ratio: 1 / 1;
+}
+
+.masonryCard:nth-child(6n + 2) .masonryAspect {
+  aspect-ratio: 16 / 9;
+}
+
+.masonryCard:nth-child(6n + 3) .masonryAspect {
+  aspect-ratio: 3 / 4;
+}
+
+.masonryCard:nth-child(6n + 4) .masonryAspect {
+  aspect-ratio: 4 / 3;
+}
+
+.masonryCard:nth-child(6n + 5) .masonryAspect {
+  aspect-ratio: 5 / 4;
+}
+
+.masonryCard:nth-child(6n) .masonryAspect {
+  aspect-ratio: 4 / 5;
+}
+
+.masonryImg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
 .thumbLink {
   display: block;
   text-decoration: none;

@@ -7,8 +7,9 @@ export type Logement = {
   photosPresentation: [string, string]
   /** Galerie « critères » / visuels du logement */
   galeriePhotos: string[]
+  /** Description libre affichée sur la fiche */
   descriptionChambre: string
-  /** Identifiants issus du catalogue `CRITERES_DEFAUT` */
+  /** IDs des équipements sélectionnés */
   criteresIds: string[]
 }
 

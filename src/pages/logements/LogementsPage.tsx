@@ -2,22 +2,20 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import {
   BedDouble,
   ChevronRight,
+  Eye,
   LayoutGrid,
-  Pencil,
   Plus,
   Search,
   Trash2,
   Users,
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import { CreateLogementForm, type Logement } from "./createLogement"
+import type { Logement } from "./createLogement"
 import { libellesCriteres } from "./logementCriteres"
 import { loadLogements, saveLogements } from "./logementStorage"
 import styles from "./LogementsPage.module.css"
 
 export type { Logement } from "./createLogement"
-
-type ModeListe = "ferme" | "edition"
 
 export function LogementsPage() {
   const baseId = useId()
@@ -25,8 +23,6 @@ export function LogementsPage() {
   const navigate = useNavigate()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [liste, setListe] = useState<Logement[]>(loadLogements)
-  const [mode, setMode] = useState<ModeListe>("ferme")
-  const [editionId, setEditionId] = useState<string | null>(null)
   const [query, setQuery] = useState("")
 
   useEffect(() => {
@@ -47,37 +43,13 @@ export function LogementsPage() {
     })
   }, [liste, query])
 
-  const logementEdition = useMemo(
-    () => (editionId ? liste.find((l) => l.id === editionId) ?? null : null),
-    [liste, editionId],
-  )
-
-  const ouvrirEdition = useCallback((l: Logement) => {
-    setEditionId(l.id)
-    setMode("edition")
-  }, [])
-
-  const fermerForm = useCallback(() => {
-    setMode("ferme")
-    setEditionId(null)
-  }, [])
-
-  useEffect(() => {
-    if (mode === "edition" && editionId && !liste.some((l) => l.id === editionId)) {
-      fermerForm()
-    }
-  }, [mode, editionId, liste, fermerForm])
-
   const supprimer = useCallback(
     (id: string) => {
       if (!window.confirm("Supprimer ce logement ?")) return
       setListe((prev) => prev.filter((x) => x.id !== id))
-      if (editionId === id) fermerForm()
     },
-    [editionId, fermerForm],
+    [],
   )
-
-  const editionOuverte = mode === "edition" && logementEdition !== null
 
   const formatPrix = useCallback((prix: number) => {
     return new Intl.NumberFormat("fr-FR", {
@@ -167,18 +139,6 @@ export function LogementsPage() {
         </p>
       </div>
 
-      {editionOuverte && logementEdition && (
-        <CreateLogementForm
-          mode="edition"
-          logementEdition={logementEdition}
-          onCancel={fermerForm}
-          onSaved={(logement) => {
-            setListe((prev) => prev.map((x) => (x.id === logement.id ? logement : x)))
-            fermerForm()
-          }}
-        />
-      )}
-
       {filtres.length === 0 ? (
         <div className={styles.empty}>
           <div className={styles.emptyInner}>
@@ -252,18 +212,12 @@ export function LogementsPage() {
                   <button
                     type="button"
                     className={styles.cardCta}
-                    onClick={() => ouvrirEdition(l)}
+                    onClick={() => navigate(`/logements/${l.id}`)}
                   >
                     <span className={styles.cardCtaLabel}>
-                      <Pencil size={14} strokeWidth={2} aria-hidden className={styles.cardCtaIcon} />
-                      {l.prix > 0 ? (
-                        <>
-                          Modifier pour {formatPrix(l.prix)}
-                          <span className={styles.cardCtaPer}> / nuit</span>
-                        </>
-                      ) : (
-                        <>Modifier la fiche</>
-                      )}
+                      <Eye size={14} strokeWidth={2} aria-hidden className={styles.cardCtaIcon} />
+                      Voir les détails
+                      {l.prix > 0 ? <span className={styles.cardCtaPer}> · {formatPrix(l.prix)} / nuit</span> : null}
                     </span>
                     <ChevronRight size={16} strokeWidth={2} aria-hidden />
                   </button>

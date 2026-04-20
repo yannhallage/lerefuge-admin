@@ -13,19 +13,19 @@ const EXEMPLES: GaleriePhotoSite[] = [
   {
     id: "demo-g-1",
     src: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80",
-    alt: "Façade et piscine d’un hôtel au coucher du soleil",
+    // alt: "Façade et piscine d’un hôtel au coucher du soleil",
     ajouteeLe: new Date(0).toISOString(),
   },
   {
     id: "demo-g-2",
     src: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=900&q=80",
-    alt: "Chambre d’hôtel lumineuse avec lit king size",
+    // alt: "Chambre d’hôtel lumineuse avec lit king size",
     ajouteeLe: new Date(0).toISOString(),
   },
   {
     id: "demo-g-3",
     src: "https://images.unsplash.com/photo-1611892440504-42a792e63c32?auto=format&fit=crop&w=900&q=80",
-    alt: "Hall d’accueil moderne",
+    // alt: "Hall d’accueil moderne",
     ajouteeLe: new Date(0).toISOString(),
   },
 ]

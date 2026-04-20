@@ -3,6 +3,7 @@
 .wrap {
   width: 100%;
   max-width: 100%;
+  --reservation-text-size: 0.75rem;
 }
 
 .intro {
@@ -11,7 +12,7 @@
 
 .introTitle {
   margin: 0 0 8px;
-  font-size: 1rem;
+  font-size: var(--reservation-text-size);
   font-weight: 600;
   color: var(--admin-navy);
 }
@@ -19,7 +20,7 @@
 .introText {
   margin: 0;
   max-width: 72ch;
-  font-size: 0.875rem;
+  font-size: var(--reservation-text-size);
   line-height: 1.55;
   color: var(--admin-text-muted);
 }
@@ -34,7 +35,7 @@
 
 .breadcrumb {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: var(--reservation-text-size);
   color: var(--admin-text);
   min-width: 0;
 }
@@ -120,7 +121,7 @@
   border: none;
   background: transparent;
   font: inherit;
-  font-size: 0.875rem;
+  font-size: var(--reservation-text-size);
   color: var(--admin-text);
   outline: none;
 }
@@ -135,7 +136,8 @@
 
 .summaryText {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--reservation-text-size);
+  line-height: 1.45;
   color: var(--admin-text);
 }
 
@@ -176,12 +178,12 @@
   width: 100%;
   min-width: 1100px;
   border-collapse: collapse;
-  font-size: 0.8125rem;
+  font-size: var(--reservation-text-size);
 }
 
 .table th,
 .table td {
-  padding: 10px 12px;
+  padding: 11px 12px;
   text-align: left;
   vertical-align: top;
   border-bottom: 1px solid var(--admin-border);
@@ -189,6 +191,8 @@
 
 .table th {
   font-weight: 600;
+  font-size: var(--reservation-text-size);
+  letter-spacing: 0.01em;
   color: var(--admin-navy);
   background: var(--admin-surface-muted);
   white-space: nowrap;
@@ -217,12 +221,15 @@
 .statutBadge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  justify-content: center;
+  min-height: 20px;
+  padding: 2px 8px;
   font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: none;
+  border-radius: 4px;
   white-space: nowrap;
 }
 
@@ -268,14 +275,14 @@
 
 .emptyTitle {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--reservation-text-size);
   font-weight: 600;
   color: var(--admin-navy);
 }
 
 .emptyText {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--reservation-text-size);
   line-height: 1.55;
   color: var(--admin-text-muted);
 }
@@ -284,7 +291,7 @@
   margin-top: 8px;
   padding: 9px 18px;
   font: inherit;
-  font-size: 0.8125rem;
+  font-size: var(--reservation-text-size);
   font-weight: 600;
   color: var(--admin-navy);
   background: var(--admin-surface-muted);
@@ -341,7 +348,7 @@
   }
 
   .summaryText {
-    font-size: 0.8125rem;
+    font-size: var(--reservation-text-size);
     line-height: 1.45;
   }
 

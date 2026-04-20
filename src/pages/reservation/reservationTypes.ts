@@ -1,7 +1,7 @@
 export type StatutReservation = "en-attente" | "confirmee" | "annulee"
 
 export type Reservation = {
-  id: string
+  // id: string
   /** ISO date (YYYY-MM-DD) */
   dateArrivee: string
   /** ISO date (YYYY-MM-DD) */
@@ -45,7 +45,7 @@ export function parseReservation(x: unknown): Reservation | null {
   if (typeof o.message !== "string") return null
 
   return {
-    id: o.id,
+    // id: o.id,
     dateArrivee: o.dateArrivee,
     dateDepart: o.dateDepart,
     adultes: Math.floor(o.adultes),

@@ -4,7 +4,7 @@ export const STORAGE_KEY = "lerefuge-reservations-v1"
 
 export const EXEMPLES: Reservation[] = [
   {
-    id: "resa-demo-1",
+    // id: "resa-demo-1",
     dateArrivee: "2026-04-18",
     dateDepart: "2026-04-19",
     adultes: 1,
@@ -18,7 +18,7 @@ export const EXEMPLES: Reservation[] = [
     statut: "en-attente",
   },
   {
-    id: "resa-demo-2",
+    // id: "resa-demo-2",
     dateArrivee: "2026-04-22",
     dateDepart: "2026-04-25",
     adultes: 2,

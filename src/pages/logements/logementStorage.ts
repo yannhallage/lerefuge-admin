@@ -15,9 +15,8 @@ export const EXEMPLES: Logement[] = [
       "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=600&q=80",
       "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80",
     ],
-    descriptionChambre:
-      "Chambre lumineuse avec lit double, salle d’eau privative et vue sur le jardin. Idéale pour un séjour calme.",
-    criteresIds: ["wifi", "lit-double", "sdb-privee", "vue", "petit-dej"],
+    descriptionChambre: "Chambre lumineuse avec vue sur le jardin, idéale pour un séjour au calme.",
+    criteresIds: [],
   },
 ]
 
