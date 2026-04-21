@@ -2,13 +2,23 @@ import { useId } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
 import { CreateLogementForm } from "../createLogement"
-import { loadLogements, saveLogements } from "../logementStorage"
+import { libellesCriteres } from "../logementCriteres"
 import listStyles from "../LogementsPage.module.css"
 import pageStyles from "./NouveauLogementPage.module.css"
+import { useCreateLogement } from "@/features/logement/hooks/useLogement"
+import type { Logement } from "../createLogement"
+
+async function dataUrlToFile(dataUrl: string, fallbackName: string): Promise<File> {
+  const response = await fetch(dataUrl)
+  const blob = await response.blob()
+  const ext = blob.type.split("/")[1] ?? "jpg"
+  return new File([blob], `${fallbackName}.${ext}`, { type: blob.type || "image/jpeg" })
+}
 
 export function NouveauLogementPage() {
   const baseId = useId()
   const navigate = useNavigate()
+  const createLogement = useCreateLogement()
 
   return (
     <div className={listStyles.wrap}>
@@ -17,8 +27,7 @@ export function NouveauLogementPage() {
           Nouveau logement
         </h2>
         <p className={listStyles.introText}>
-          Même principe que la liste des logements : fiche sur toute la largeur utile, enregistrement local dans le
-          navigateur, puis retour au catalogue.
+          Création d’un logement branchée sur l’API. Les données et les images sont enregistrées côté serveur.
         </p>
       </section>
 
@@ -51,10 +60,29 @@ export function NouveauLogementPage() {
         mode="creation"
         logementEdition={null}
         onCancel={() => navigate("/logements")}
-        onSaved={(logement) => {
-          const actuels = loadLogements()
-          saveLogements([logement, ...actuels])
-          navigate("/logements")
+        onSaved={(logement: Logement) => {
+          const run = async () => {
+            const photos = await Promise.all(
+              logement.photosPresentation.map((src, idx) => dataUrlToFile(src, `presentation-${idx + 1}`)),
+            )
+            const galerie = await Promise.all(
+              logement.galeriePhotos.map((src, idx) => dataUrlToFile(src, `galerie-${idx + 1}`)),
+            )
+            const specification = libellesCriteres(logement.criteresIds)
+            await createLogement.mutateAsync({
+              nom_logement: logement.nom,
+              prix: logement.prix,
+              aire_chambre: logement.aireChambre,
+              nbre_personne: logement.nbrePersonne,
+              specification: specification.length > 0 ? specification : ["Standard"],
+              images: [...photos, ...galerie],
+            })
+            navigate("/logements")
+          }
+
+          run().catch(() => {
+            window.alert("La création du logement a échoué.")
+          })
         }}
       />
     </div>

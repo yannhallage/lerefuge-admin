@@ -20,6 +20,8 @@ import {
   Upload,
 } from "lucide-react"
 import styles from "./AccueilPage.module.css"
+import { useAccueilList, useCreateAccueil } from "@/features/accueil/hooks/useAccueil"
+import type { AccueilItem } from "@/features/accueil/api/accueil.types"
 
 const STORAGE_KEY = "lerefuge-accueil-images-selection"
 
@@ -31,46 +33,17 @@ export type AccueilLibraryImage = {
   dejaUtilisee?: boolean
 }
 
-const BIBLIOTHEQUE_PAR_DEFAUT: AccueilLibraryImage[] = [
-  {
-    id: "def-kit",
-    src: "/accueil-kit-reference.png",
-    alt: "Accessoires photo et vidéo disposés sur fond clair",
-    dejaUtilisee: true,
-  },
-  {
-    id: "def-malette",
-    src: "https://images.unsplash.com/photo-1583394838336-acd977736f7d?auto=format&fit=crop&w=720&q=80",
-    alt: "Malette professionnelle pour équipement photo",
-  },
-  {
-    id: "def-gimbal",
-    src: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=720&q=80",
-    alt: "Appareil photo sur stabilisateur",
-  },
-  {
-    id: "def-detail",
-    src: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=720&q=80",
-    alt: "Gros plan sur du matériel vidéo professionnel",
-  },
-  {
-    id: "def-micro",
-    src: "https://images.unsplash.com/photo-1598387993441-a364f854c3e0?auto=format&fit=crop&w=720&q=80",
-    alt: "Microphone et accessoires audio",
-  },
-]
-
 function loadSelection(): Set<string> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) {
-      return new Set(BIBLIOTHEQUE_PAR_DEFAUT.filter((i) => i.dejaUtilisee).map((i) => i.id))
+      return new Set()
     }
     const parsed = JSON.parse(raw) as unknown
     if (!Array.isArray(parsed)) return new Set()
     return new Set(parsed.filter((x): x is string => typeof x === "string"))
   } catch {
-    return new Set(BIBLIOTHEQUE_PAR_DEFAUT.filter((i) => i.dejaUtilisee).map((i) => i.id))
+    return new Set()
   }
 }
 
@@ -84,15 +57,26 @@ export function AccueilPage() {
   const searchId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const { data, isLoading, isFetching, refetch, error } = useAccueilList()
+  const createAccueil = useCreateAccueil()
   const [query, setQuery] = useState("")
   const [tri, setTri] = useState<"pertinence" | "recent">("pertinence")
   const [vueGrille, setVueGrille] = useState(true)
-  const [images, setImages] = useState<AccueilLibraryImage[]>(BIBLIOTHEQUE_PAR_DEFAUT)
   const [selection, setSelection] = useState<Set<string>>(loadSelection)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [uploadingCount, setUploadingCount] = useState(0)
 
-  useEffect(() => {
-    saveSelection(selection)
-  }, [selection])
+  const images = useMemo<AccueilLibraryImage[]>(() => {
+    const list = data ?? []
+    return list
+      .filter((item: AccueilItem) => Boolean(item.image))
+      .map((item: AccueilItem, index) => ({
+        id: item.accueil_id ?? `${item.titre}-${index}`,
+        src: item.image as string,
+        alt: item.titre || "Image accueil",
+        dejaUtilisee: true,
+      }))
+  }, [data])
 
   const filtrees = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -122,29 +106,34 @@ export function AccueilPage() {
   }, [])
 
   const handleFichiers = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files?.length) return
-    const nouvelles: AccueilLibraryImage[] = []
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]
-      if (!file.type.startsWith("image/")) continue
-      const url = URL.createObjectURL(file)
-      nouvelles.push({
-        id: `upload-${file.name}-${Date.now()}-${i}`,
-        src: url,
-        alt: file.name.replace(/\.[^.]+$/, "") || "Image importée",
-      })
+    const run = async () => {
+      const files = e.target.files
+      if (!files?.length) return
+      setUploadError(null)
+      setUploadingCount(files.length)
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        if (!file.type.startsWith("image/")) continue
+        const titre = file.name.replace(/\.[^.]+$/, "") || "Image importee"
+        await createAccueil.mutateAsync({ titre, image: file })
+        setUploadingCount((prev) => Math.max(0, prev - 1))
+      }
+      await refetch()
+      e.target.value = ""
+      setUploadingCount(0)
     }
-    if (nouvelles.length) {
-      setImages((prev) => [...nouvelles, ...prev])
-      setSelection((prev) => {
-        const next = new Set(prev)
-        nouvelles.forEach((n) => next.add(n.id))
-        return next
-      })
-    }
-    e.target.value = ""
-  }, [])
+
+    run().catch(() => {
+      setUploadError("Le televersement a echoue.")
+      setUploadingCount(0)
+      e.target.value = ""
+    })
+  }, [createAccueil, refetch])
+
+  useEffect(() => {
+    saveSelection(selection)
+  }, [selection])
 
   const nombreSelection = selection.size
 
@@ -157,6 +146,7 @@ export function AccueilPage() {
         multiple
         className={styles.fileInput}
         onChange={handleFichiers}
+        disabled={createAccueil.isPending}
         aria-hidden
         tabIndex={-1}
       />
@@ -169,6 +159,18 @@ export function AccueilPage() {
           depuis votre ordinateur.
         </p>
       </section>
+      {error ? (
+        <p className={styles.empty}>Impossible de charger les visuels de l’accueil.</p>
+      ) : null}
+      {uploadError ? <p className={styles.empty}>{uploadError}</p> : null}
+      {createAccueil.isPending ? (
+        <p className={styles.empty}>
+          Televersement en cours...
+          {uploadingCount > 0
+            ? ` (${uploadingCount} restant${uploadingCount > 1 ? "s" : ""})`
+            : ""}
+        </p>
+      ) : null}
 
       <div className={styles.breadcrumbRow}>
         <nav className={styles.breadcrumb} aria-label="Fil d’Ariane">
@@ -210,9 +212,10 @@ export function AccueilPage() {
               type="button"
               className={styles.uploadButton}
               onClick={() => fileInputRef.current?.click()}
+              disabled={createAccueil.isPending}
             >
               <Upload size={17} strokeWidth={2} aria-hidden />
-              Téléverser
+              {createAccueil.isPending ? "Televersement..." : "Téléverser"}
             </button>
           </div>
         </div>
@@ -238,7 +241,14 @@ export function AccueilPage() {
         </div>
 
         <div className={styles.actionsRow}>
-          <button type="button" className={styles.iconGhost} title="Actualiser" aria-label="Actualiser">
+          <button
+            type="button"
+            className={styles.iconGhost}
+            title="Actualiser"
+            aria-label="Actualiser"
+            onClick={() => void refetch()}
+            disabled={isFetching}
+          >
             <RefreshCw size={18} strokeWidth={2} aria-hidden />
           </button>
           <div className={styles.actionsRight}>
@@ -293,6 +303,7 @@ export function AccueilPage() {
           </span>
         </p>
       </div>
+      {isLoading ? <p className={styles.empty}>Chargement des visuels...</p> : null}
 
       <ul
         className={[styles.grid, vueGrille ? "" : styles.gridList].join(" ")}
@@ -343,6 +354,7 @@ export function AccueilPage() {
         type="button"
         className={styles.fab}
         onClick={() => fileInputRef.current?.click()}
+        disabled={createAccueil.isPending}
         aria-label="Ajouter des images"
       >
         <Plus size={16} strokeWidth={2.25} aria-hidden />

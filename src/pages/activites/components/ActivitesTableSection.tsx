@@ -5,7 +5,6 @@ import styles from "../ActivitesPage.module.css"
 type ActiviteItem = {
   id: string
   titre: string
-  sousInfo?: string
 }
 
 type ActivitesTableSectionProps = {

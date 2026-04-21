@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
+import { useCallback, useId, useMemo, useRef, useState } from "react"
 import {
   BedDouble,
   ChevronRight,
@@ -10,24 +10,42 @@ import {
   Users,
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import type { Logement } from "./createLogement"
 import { libellesCriteres } from "./logementCriteres"
-import { loadLogements, saveLogements } from "./logementStorage"
 import styles from "./LogementsPage.module.css"
-
-export type { Logement } from "./createLogement"
+import { useDeleteLogement, useLogementList } from "@/features/logement/hooks/useLogement"
+import type { LogementItem } from "@/features/logement/api/logement.types"
+type LogementCard = {
+  id: string
+  nom: string
+  prix: number
+  descriptionChambre: string
+  criteresIds: string[]
+  photosPresentation: [string, string]
+}
 
 export function LogementsPage() {
   const baseId = useId()
   const searchId = useId()
   const navigate = useNavigate()
   const searchInputRef = useRef<HTMLInputElement>(null)
-  const [liste, setListe] = useState<Logement[]>(loadLogements)
+  const { data, isLoading, error } = useLogementList()
+  const deleteLogement = useDeleteLogement()
   const [query, setQuery] = useState("")
-
-  useEffect(() => {
-    saveLogements(liste)
-  }, [liste])
+  const liste = useMemo<LogementCard[]>(
+    () =>
+      (data ?? []).map((item: LogementItem) => ({
+        id: item.logement_id,
+        nom: item.nom_logement,
+        prix: item.prix ?? 0,
+        descriptionChambre: "",
+        criteresIds: item.specification ?? [],
+        photosPresentation: [
+          item.image?.[0] ?? "https://placehold.co/800x600?text=Logement",
+          item.image?.[1] ?? item.image?.[0] ?? "https://placehold.co/800x600?text=Logement",
+        ],
+      })),
+    [data],
+  )
 
   const filtres = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -43,13 +61,10 @@ export function LogementsPage() {
     })
   }, [liste, query])
 
-  const supprimer = useCallback(
-    (id: string) => {
-      if (!window.confirm("Supprimer ce logement ?")) return
-      setListe((prev) => prev.filter((x) => x.id !== id))
-    },
-    [],
-  )
+  const supprimer = useCallback(async (id: string) => {
+    if (!window.confirm("Supprimer ce logement ?")) return
+    await deleteLogement.mutateAsync(id)
+  }, [deleteLogement])
 
   const formatPrix = useCallback((prix: number) => {
     return new Intl.NumberFormat("fr-FR", {
@@ -71,9 +86,10 @@ export function LogementsPage() {
         </h2>
         <p className={styles.introText}>
           Centralisez les fiches affichées côté site : deux photos de présentation, tarif à la nuit, galerie
-          « critères » et texte descriptif. Les modifications sont enregistrées dans ce navigateur.
+          « critères » et texte descriptif. Les modifications sont enregistrées sur l’API.
         </p>
       </section>
+      {error ? <p className={styles.empty}>Impossible de charger les logements.</p> : null}
 
       <div className={styles.breadcrumbRow}>
         <nav className={styles.breadcrumb} aria-label="Fil d’Ariane">
@@ -139,7 +155,8 @@ export function LogementsPage() {
         </p>
       </div>
 
-      {filtres.length === 0 ? (
+      {isLoading ? <p className={styles.empty}>Chargement des logements...</p> : null}
+      {!isLoading && filtres.length === 0 ? (
         <div className={styles.empty}>
           <div className={styles.emptyInner}>
             <BedDouble size={36} strokeWidth={1.5} className={styles.emptyIcon} aria-hidden />

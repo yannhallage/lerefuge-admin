@@ -1,10 +1,70 @@
 export const API_ENDPOINTS = {
   auth: {
+    register: "/auth/register",
     login: "/auth/login",
     refresh: "/auth/refresh",
+  },
+  admin: {
+    me: "/admin/me",
   },
   users: {
     list: "/users",
     byId: (id: string) => `/users/${id}`,
+  },
+  accueil: {
+    list: "/accueil",
+    create: "/accueil",
+    byId: (id: string) => `/accueil/${id}`,
+    update: (id: string) => `/accueil/${id}`,
+    delete: (id: string) => `/accueil/${id}`,
+  },
+  activites: {
+    list: "/activites",
+    create: "/activites",
+    byId: (id: string) => `/activites/${id}`,
+    update: (id: string) => `/activites/${id}`,
+    delete: (id: string) => `/activites/${id}`,
+  },
+  blog: {
+    list: "/blog",
+    create: "/blog",
+    byId: (id: string) => `/blog/${id}`,
+    update: (id: string) => `/blog/${id}`,
+    delete: (id: string) => `/blog/${id}`,
+  },
+  client: {
+    list: "/client/all",
+    create: "/client",
+    byId: (clientId: string) => `/client/${clientId}`,
+    update: "/client",
+    delete: (clientId: string) => `/client/${clientId}`,
+  },
+  galerie: {
+    list: "/galerie",
+    create: "/galerie",
+    byId: (id: string) => `/galerie/${id}`,
+    update: (id: string) => `/galerie/${id}`,
+    delete: (id: string) => `/galerie/${id}`,
+  },
+  logement: {
+    list: "/logement",
+    create: "/logement",
+    byId: (id: string) => `/logement/${id}`,
+    update: (id: string) => `/logement/${id}`,
+    delete: (id: string) => `/logement/${id}`,
+  },
+  reservation: {
+    list: "/reservation",
+    create: "/reservation",
+    byId: (id: string) => `/reservation/${id}`,
+    update: (id: string) => `/reservation/${id}`,
+    delete: (id: string) => `/reservation/${id}`,
+  },
+  restauration: {
+    list: "/restauration",
+    create: "/restauration",
+    byId: (id: string) => `/restauration/${id}`,
+    update: (id: string) => `/restauration/${id}`,
+    delete: (id: string) => `/restauration/${id}`,
   },
 } as const

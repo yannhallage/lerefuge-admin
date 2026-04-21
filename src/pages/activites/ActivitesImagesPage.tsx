@@ -3,12 +3,22 @@ import { Plus, Search } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import styles from "./ActivitesPage.module.css"
 import { ActivitesImagesGallery } from "./components/ActivitesImagesGallery.tsx"
-import { loadActivites } from "./activitesStorage"
+import { useActivitesList } from "@/features/activites/hooks/useActivites"
 
 export function ActivitesImagesPage() {
   const navigate = useNavigate()
   const [query, setQuery] = useState("")
-  const [activites] = useState(loadActivites)
+  const { data: activitesData = [] } = useActivitesList()
+
+  const activites = useMemo(
+    () =>
+      activitesData.map((item) => ({
+        id: item.activite_id,
+        titre: item.nom,
+        image: item.image,
+      })),
+    [activitesData],
+  )
 
   const activitesFiltrees = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -17,7 +27,7 @@ export function ActivitesImagesPage() {
   }, [activites, query])
 
   function handleAjouterImage() {
-    window.alert("Formulaire d'ajout d'image à connecter.")
+    navigate("/activites")
   }
 
   return (

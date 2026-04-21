@@ -3,6 +3,7 @@ import styles from "./ActivitesImagesGallery.module.css"
 type ActiviteItem = {
   id: string
   titre: string
+  image?: string | null
 }
 
 type ActivitesImagesGalleryProps = {
@@ -34,7 +35,7 @@ export function ActivitesImagesGallery({ activites }: ActivitesImagesGalleryProp
           <li key={activite.id} className={styles.card}>
             <img
               className={styles.image}
-              src={getImageUrl(index)}
+              src={activite.image || getImageUrl(index)}
               alt={`Illustration de ${activite.titre}`}
               loading="lazy"
             />

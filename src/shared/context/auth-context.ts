@@ -1,8 +1,10 @@
 import { createContext } from "react"
 
+import type { LoginInput } from "@/features/auth/api/auth.types"
+
 export type AuthContextValue = {
   isAuthenticated: boolean
-  login: () => void
+  login: (credentials: LoginInput) => Promise<void>
   logout: () => void
 }
 

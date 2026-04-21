@@ -3,6 +3,8 @@ export type Logement = {
   nom: string
   /** Prix affiché (nombre, devise gérée à l’affichage) */
   prix: number
+  aireChambre: number
+  nbrePersonne?: number
   /** Deux photos de présentation */
   photosPresentation: [string, string]
   /** Galerie « critères » / visuels du logement */
@@ -19,6 +21,9 @@ export function parseLogement(x: unknown): Logement | null {
   const o = x as Record<string, unknown>
   if (typeof o.id !== "string" || typeof o.nom !== "string") return null
   if (typeof o.prix !== "number" || Number.isNaN(o.prix)) return null
+  const aireChambre = typeof o.aireChambre === "number" && !Number.isNaN(o.aireChambre) ? o.aireChambre : 0
+  const nbrePersonne =
+    typeof o.nbrePersonne === "number" && !Number.isNaN(o.nbrePersonne) ? o.nbrePersonne : undefined
   if (typeof o.descriptionChambre !== "string") return null
   if (!Array.isArray(o.photosPresentation) || o.photosPresentation.length !== 2) return null
   if (!o.photosPresentation.every((p) => typeof p === "string")) return null
@@ -33,6 +38,8 @@ export function parseLogement(x: unknown): Logement | null {
     id: o.id,
     nom: o.nom,
     prix: o.prix,
+    aireChambre,
+    nbrePersonne,
     photosPresentation: [o.photosPresentation[0], o.photosPresentation[1]] as [string, string],
     galeriePhotos: [...o.galeriePhotos],
     descriptionChambre: o.descriptionChambre,

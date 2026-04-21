@@ -7,6 +7,8 @@ export const EXEMPLES: Logement[] = [
     id: "demo-1",
     nom: "Chambre vue jardin",
     prix: 85,
+    aireChambre: 24,
+    nbrePersonne: 2,
     photosPresentation: [
       "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=800&q=80",

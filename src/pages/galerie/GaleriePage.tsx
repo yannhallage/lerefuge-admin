@@ -1,6 +1,5 @@
 import {
   useCallback,
-  useEffect,
   useId,
   useMemo,
   useRef,
@@ -23,11 +22,8 @@ import {
 import Masonry from "react-masonry-css"
 // import { Link } from "react-router-dom"
 import accueilStyles from "@/pages/accueil/AccueilPage.module.css"
-import {
-  loadGalerieSite,
-  saveGalerieSite,
-  type GaleriePhotoSite,
-} from "./galerieStorage"
+import { useCreateGalerie, useDeleteGalerie, useGalerieList } from "@/features/galerie/hooks/useGalerie"
+import type { GalerieItem } from "@/features/galerie/api/galerie.types"
 import galerieStyles from "./GaleriePage.module.css"
 
 const MASONRY_BREAKPOINTS = {
@@ -37,17 +33,48 @@ const MASONRY_BREAKPOINTS = {
   640: 1,
 }
 
-function fileVersDataUrl(file: File, onProgress?: (progress: number) => void): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader()
-    r.onprogress = (event) => {
-      if (!event.lengthComputable || !onProgress) return
-      onProgress(Math.max(0, Math.min(1, event.loaded / event.total)))
-    }
-    r.onload = () => resolve(String(r.result))
-    r.onerror = () => reject(r.error)
-    r.readAsDataURL(file)
-  })
+type GaleriePhotoSite = {
+  id: string
+  src: string
+  alt?: string
+  ajouteeLe: string
+}
+
+function buildPublicBaseUrl(): string {
+  const raw = (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? ""
+  if (!raw) return window.location.origin
+  try {
+    const url = new URL(raw)
+    const withoutApiSuffix = url.pathname.replace(/\/api\/?$/, "")
+    return `${url.origin}${withoutApiSuffix}`.replace(/\/+$/, "")
+  } catch {
+    return window.location.origin
+  }
+}
+
+function resolveImageUrl(path?: string): string {
+  const value = path?.trim()
+  if (!value) return ""
+  if (/^(https?:)?\/\//i.test(value) || value.startsWith("data:") || value.startsWith("blob:")) {
+    return value
+  }
+  const cleaned = value.replace(/^\/+/, "")
+  return `${buildPublicBaseUrl()}/${cleaned}`
+}
+
+function mapGalerieItem(item: GalerieItem, index: number): GaleriePhotoSite | null {
+  const id =
+    item.galerie_id ??
+    item.id ??
+    `${item.image ?? item.src ?? "gal"}-${item.nom ?? "image"}-${index}`
+  const src = resolveImageUrl(item.image ?? item.src)
+  if (!id || !src) return null
+  return {
+    id,
+    src,
+    alt: item.nom,
+    ajouteeLe: item.createdAt ?? item.ajouteeLe ?? new Date(0).toISOString(),
+  }
 }
 
 function legendeSite(p: GaleriePhotoSite): string {
@@ -60,23 +87,22 @@ export function GaleriePage() {
   const searchSiteId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const searchSiteRef = useRef<HTMLInputElement>(null)
-  const [photosSite, setPhotosSite] = useState<GaleriePhotoSite[]>(loadGalerieSite)
+  const { data, isLoading, isFetching, refetch, error } = useGalerieList()
+  const createGalerie = useCreateGalerie()
+  const deleteGalerie = useDeleteGalerie()
   const [querySite, setQuerySite] = useState("")
   const [triSite] = useState<"pertinence" | "recent">("pertinence")
   const [vueGrilleSite, setVueGrilleSite] = useState(true)
   const [selectionMode, setSelectionMode] = useState(false)
   const [selection, setSelection] = useState<Set<string>>(new Set())
   const [dragActif, setDragActif] = useState(false)
-  const [uploadState, setUploadState] = useState<{
-    total: number
-    done: number
-    progress: number
-    fichier: string
-  } | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [uploadingCount, setUploadingCount] = useState(0)
 
-  useEffect(() => {
-    saveGalerieSite(photosSite)
-  }, [photosSite])
+  const photosSite = useMemo(
+    () => (data ?? []).map(mapGalerieItem).filter((x): x is GaleriePhotoSite => x !== null),
+    [data],
+  )
 
   const photosSiteFiltrees = useMemo(() => {
     const q = querySite.trim().toLowerCase()
@@ -100,54 +126,28 @@ export function GaleriePage() {
 
   const traiterFichiers = useCallback(async (files: FileList | File[]) => {
     if (!files.length) return
-    const now = new Date().toISOString()
-    const nouvelles: GaleriePhotoSite[] = []
-    setUploadState({ total: files.length, done: 0, progress: 0, fichier: "" })
+    setUploadError(null)
+    setUploadingCount(files.length)
     for (let i = 0; i < files.length; i++) {
       const f = files[i]
       if (!f.type.startsWith("image/")) continue
-      setUploadState((prev) =>
-        prev
-          ? {
-              ...prev,
-              fichier: f.name,
-            }
-          : prev,
-      )
-      const src = await fileVersDataUrl(f, (fileProgress) => {
-        setUploadState((prev) => {
-          if (!prev || prev.total === 0) return prev
-          const globalProgress = (prev.done + fileProgress) / prev.total
-          return { ...prev, progress: globalProgress }
-        })
-      })
-      nouvelles.push({
-        id: `gal-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 8)}`,
-        src,
-        alt: f.name.replace(/\.[^.]+$/, "") || "Image importée",
-        ajouteeLe: now,
-      })
-      setUploadState((prev) => {
-        if (!prev) return prev
-        const done = prev.done + 1
-        return {
-          ...prev,
-          done,
-          progress: done / prev.total,
-        }
-      })
+      const nom = f.name.replace(/\.[^.]+$/, "") || "Image importee"
+      await createGalerie.mutateAsync({ nom, image: f })
+      setUploadingCount((prev) => Math.max(0, prev - 1))
     }
-    if (nouvelles.length) {
-      setPhotosSite((prev) => [...nouvelles, ...prev])
-    }
-    setTimeout(() => setUploadState(null), 500)
-  }, [])
+    await refetch()
+    setUploadingCount(0)
+  }, [createGalerie, refetch])
 
   const ajouterFichiers = useCallback(
     async (e: ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files
       if (!files?.length) return
-      await traiterFichiers(files)
+      try {
+        await traiterFichiers(files)
+      } catch {
+        setUploadError("Le televersement a echoue.")
+      }
       e.target.value = ""
     },
     [traiterFichiers],
@@ -155,8 +155,13 @@ export function GaleriePage() {
 
   const supprimerPhotoSite = useCallback((id: string) => {
     if (!window.confirm("Retirer cette image de la galerie du site ?")) return
-    setPhotosSite((prev) => prev.filter((p) => p.id !== id))
-  }, [])
+    deleteGalerie
+      .mutateAsync(id)
+      .then(() => refetch())
+      .catch(() => {
+        setUploadError("La suppression a echoue.")
+      })
+  }, [deleteGalerie, refetch])
 
   const supprimerSelection = useCallback(() => {
     if (selection.size === 0) return
@@ -165,10 +170,17 @@ export function GaleriePage() {
         ? "Retirer l’image sélectionnée de la galerie ?"
         : `Retirer les ${selection.size} images sélectionnées de la galerie ?`
     if (!window.confirm(texte)) return
-    setPhotosSite((prev) => prev.filter((p) => !selection.has(p.id)))
-    setSelection(new Set())
-    setSelectionMode(false)
-  }, [selection])
+    const ids = [...selection]
+    Promise.all(ids.map((id) => deleteGalerie.mutateAsync(id)))
+      .then(() => refetch())
+      .then(() => {
+        setSelection(new Set())
+        setSelectionMode(false)
+      })
+      .catch(() => {
+        setUploadError("Une ou plusieurs suppressions ont echoue.")
+      })
+  }, [deleteGalerie, refetch, selection])
 
   const toggleSelection = useCallback((id: string) => {
     setSelection((prev) => {
@@ -259,10 +271,10 @@ export function GaleriePage() {
               type="button"
               className={accueilStyles.uploadButton}
               onClick={() => fileInputRef.current?.click()}
-              disabled={Boolean(uploadState)}
+              disabled={createGalerie.isPending}
             >
               <Upload size={17} strokeWidth={2} aria-hidden />
-              {uploadState ? "Import en cours…" : "Téléverser"}
+              {createGalerie.isPending ? "Import en cours..." : "Televerser"}
             </button>
           </div>
 
@@ -273,9 +285,10 @@ export function GaleriePage() {
             <button
               type="button"
               className={accueilStyles.iconGhost}
-              title="Relire la galerie depuis le stockage"
-              aria-label="Relire la galerie depuis le stockage"
-              onClick={() => setPhotosSite(loadGalerieSite())}
+              title="Actualiser la galerie"
+              aria-label="Actualiser la galerie"
+              onClick={() => void refetch()}
+              disabled={isFetching}
             >
               <RefreshCw size={18} strokeWidth={2} aria-hidden />
             </button>
@@ -331,13 +344,19 @@ export function GaleriePage() {
             </div>
           </div>
 
-          {uploadState ? (
+          {uploadError ? <p className={galerieStyles.emptyText}>{uploadError}</p> : null}
+          {error ? <p className={galerieStyles.emptyText}>Impossible de charger la galerie.</p> : null}
+          {isLoading ? <p className={galerieStyles.emptyText}>Chargement de la galerie...</p> : null}
+          {createGalerie.isPending ? (
             <div className={galerieStyles.uploadStatus} role="status" aria-live="polite">
               <p>
-                Import de <strong>{uploadState.fichier || "image"}</strong> ({uploadState.done}/{uploadState.total})
+                Televersement en cours...
+                {uploadingCount > 0
+                  ? ` (${uploadingCount} restant${uploadingCount > 1 ? "s" : ""})`
+                  : ""}
               </p>
               <div className={galerieStyles.progressTrack}>
-                <span className={galerieStyles.progressFill} style={{ width: `${Math.round(uploadState.progress * 100)}%` }} />
+                <span className={galerieStyles.progressFill} style={{ width: "65%" }} />
               </div>
             </div>
           ) : null}

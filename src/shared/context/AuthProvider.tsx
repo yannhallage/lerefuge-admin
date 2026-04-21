@@ -1,28 +1,57 @@
-import { useCallback, useMemo, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import { AuthContext } from "@/shared/context/auth-context"
-
-const STORAGE_KEY = "lerefuge-admin-auth"
-
-function readStored(): boolean {
-  try {
-    return sessionStorage.getItem(STORAGE_KEY) === "1"
-  } catch {
-    return false
-  }
-}
+import { authApi } from "@/features/auth/api/auth.api"
+import type { LoginInput } from "@/features/auth/api/auth.types"
+import {
+  clearAuthTokens,
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+  setRefreshToken,
+} from "@/shared/utils/storage"
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(readStored)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getAccessToken()))
 
-  const login = useCallback(() => {
-    sessionStorage.setItem(STORAGE_KEY, "1")
+  const login = useCallback(async (credentials: LoginInput) => {
+    const response = await authApi.login(credentials)
+    if (!response.success || !response.data) {
+      throw new Error(response.message || "Connexion impossible.")
+    }
+
+    setAccessToken(response.data.accessToken)
+    setRefreshToken(response.data.refreshToken)
     setIsAuthenticated(true)
   }, [])
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem(STORAGE_KEY)
+    clearAuthTokens()
     setIsAuthenticated(false)
   }, [])
+
+  const tryRefresh = useCallback(async () => {
+    const refreshToken = getRefreshToken()
+    if (!refreshToken) return
+
+    try {
+      const response = await authApi.refresh(refreshToken)
+      if (!response.success || !response.data) {
+        logout()
+        return
+      }
+      setAccessToken(response.data.accessToken)
+      setRefreshToken(response.data.refreshToken)
+      setIsAuthenticated(true)
+    } catch {
+      logout()
+    }
+  }, [logout])
+
+  useEffect(() => {
+    if (!getAccessToken() && getRefreshToken()) {
+      void tryRefresh()
+    }
+  }, [tryRefresh])
 
   const value = useMemo(
     () => ({ isAuthenticated, login, logout }),

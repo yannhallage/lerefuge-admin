@@ -1,7 +1,7 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react"
+import { useId, useMemo, useRef, useState } from "react"
 import { ChevronRight, Eye, LayoutGrid, Plus, Search, UtensilsCrossed, Users } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import { loadRepas, saveRepas } from "./repasStorage"
+import { useRestaurationList } from "@/features/restauration/hooks/useRestauration"
 import type { Repas, StatutRepas } from "./repasTypes"
 import styles from "./RestaurationsPage.module.css"
 
@@ -27,12 +27,21 @@ export function RestaurationsPage() {
   const searchId = useId()
   const navigate = useNavigate()
   const searchInputRef = useRef<HTMLInputElement>(null)
-  const [repas] = useState<Repas[]>(loadRepas)
+  const { data, isLoading, error } = useRestaurationList()
   const [query, setQuery] = useState("")
 
-  useEffect(() => {
-    saveRepas(repas)
-  }, [repas])
+  const repas = useMemo<Repas[]>(
+    () =>
+      (data ?? []).map((item, index) => ({
+        id: item.resto_id ?? item.id ?? `resto-${index}`,
+        nom: item.nom?.trim() || "Repas sans nom",
+        categorie: "Plat principal",
+        prix: typeof item.prix === "number" ? item.prix : Number(item.prix ?? 0),
+        description: item.description?.trim() || "Aucune description",
+        statut: "disponible" as StatutRepas,
+      })),
+    [data],
+  )
 
   const repasFiltres = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -50,8 +59,7 @@ export function RestaurationsPage() {
       <section className={styles.intro}>
         <h2 className={styles.introTitle}>Carte restaurant</h2>
         <p className={styles.introText}>
-          Cette page affiche les repas du restaurant. Les donnees sont locales pour le moment, en attente du
-          branchement API.
+          Cette page affiche les repas du restaurant depuis l API.
         </p>
       </section>
 
@@ -108,6 +116,8 @@ export function RestaurationsPage() {
           </span>
         </p>
       </div>
+      {isLoading ? <p className={styles.emptyText}>Chargement des repas...</p> : null}
+      {error ? <p className={styles.emptyText}>Impossible de charger les repas.</p> : null}
 
       {repasFiltres.length === 0 ? (
         <div className={styles.empty}>

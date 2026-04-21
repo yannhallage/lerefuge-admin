@@ -3,14 +3,32 @@ export type LoginInput = {
   password: string
 }
 
-export type AuthUser = {
-  id: string
+export type RegisterInput = {
   email: string
-  name?: string
+  password: string
+  name: string
 }
 
-export type LoginResponse = {
-  accessToken: string
-  refreshToken?: string
-  user: AuthUser
+export type AuthAdmin = {
+  admin_id: string
+  email: string
+  name: string
+  createdAt?: string
+  updatedAt?: string
 }
+
+export type AuthTokens = {
+  accessToken: string
+  refreshToken: string
+}
+
+export type ApiEnvelope<T> = {
+  success: boolean
+  message: string
+  data: T | null
+  statusCode?: number
+}
+
+export type LoginResponse = ApiEnvelope<AuthTokens>
+export type RefreshResponse = ApiEnvelope<AuthTokens>
+export type RegisterResponse = ApiEnvelope<AuthAdmin>

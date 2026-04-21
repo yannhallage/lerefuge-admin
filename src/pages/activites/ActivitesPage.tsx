@@ -1,31 +1,32 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { Plus, Search } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import styles from "./ActivitesPage.module.css"
 import { AddActiviteModal } from "./modal/AddActiviteModal"
 import { ActivitesTableSection } from "./components/ActivitesTableSection"
-import { loadActivites, saveActivites, type ActiviteRow } from "./activitesStorage"
+import { useActivitesList, useCreateActivite, useDeleteActivite } from "@/features/activites/hooks/useActivites"
 
 export function ActivitesPage() {
   const navigate = useNavigate()
-  const [activites, setActivites] = useState<ActiviteRow[]>(loadActivites)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [query, setQuery] = useState("")
+  const { data: activitesData = [] } = useActivitesList()
+  const createActivite = useCreateActivite()
+  const deleteActivite = useDeleteActivite()
 
-  useEffect(() => {
-    saveActivites(activites)
-  }, [activites])
-
-  function handleAjouterActivite(titre: string, sousInfo?: string) {
-    const valeur = titre.trim()
-    if (!valeur) return
-    setActivites((prev) => [{ id: `act-${Date.now()}`, titre: valeur, sousInfo }, ...prev])
+  async function handleAjouterActivite(payload: { nom: string; image?: File }) {
+    await createActivite.mutateAsync(payload)
     setIsModalOpen(false)
   }
 
   function handleSupprimerActivite(id: string) {
-    setActivites((prev) => prev.filter((activite) => activite.id !== id))
+    void deleteActivite.mutateAsync(id)
   }
+
+  const activites = useMemo(
+    () => activitesData.map((item) => ({ id: item.activite_id, titre: item.nom })),
+    [activitesData],
+  )
 
   const activitesFiltrees = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -80,7 +81,12 @@ export function ActivitesPage() {
         <Plus size={20} aria-hidden />
       </button>
 
-      <AddActiviteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleAjouterActivite} />
+      <AddActiviteModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleAjouterActivite}
+        isSubmitting={createActivite.isPending}
+      />
     </section>
   )
 }

@@ -3,12 +3,13 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type T
 type AddActiviteModalProps = {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (titre: string, sousInfo?: string) => void
+  onSubmit: (payload: { nom: string; image?: File }) => void | Promise<void>
+  isSubmitting?: boolean
 }
 
-export function AddActiviteModal({ isOpen, onClose, onSubmit }: AddActiviteModalProps) {
+export function AddActiviteModal({ isOpen, onClose, onSubmit, isSubmitting = false }: AddActiviteModalProps) {
   const [titre, setTitre] = useState("")
-  const [sousInfo, setSousInfo] = useState("")
+  const [imageFile, setImageFile] = useState<File | undefined>(undefined)
   const [dragOffsetY, setDragOffsetY] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const touchStartYRef = useRef<number | null>(null)
@@ -27,26 +28,18 @@ export function AddActiviteModal({ isOpen, onClose, onSubmit }: AddActiviteModal
     return () => window.removeEventListener("keydown", handleEscape)
   }, [isOpen, onClose])
 
-  useEffect(() => {
-    if (!isOpen) {
-      setDragOffsetY(0)
-      setIsDragging(false)
-      touchStartYRef.current = null
-    }
-  }, [isOpen])
-
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!titre.trim()) return
-    const sousInfoValue = sousInfo.trim()
-    onSubmit(titre, sousInfoValue || undefined)
+    const nom = titre.trim()
+    if (!nom) return
+    void onSubmit({ nom, image: imageFile })
     setTitre("")
-    setSousInfo("")
+    setImageFile(undefined)
   }
 
   function handleClose() {
     setTitre("")
-    setSousInfo("")
+    setImageFile(undefined)
     setDragOffsetY(0)
     setIsDragging(false)
     touchStartYRef.current = null
@@ -121,13 +114,12 @@ export function AddActiviteModal({ isOpen, onClose, onSubmit }: AddActiviteModal
             />
           </label>
           <label className="grid gap-2 text-[0.8rem] font-semibold text-slate-700">
-            Sous-info (optionnel)
+            Image (optionnel)
             <input
               className="min-h-[38px] w-full rounded-lg border border-slate-300 px-3 text-[0.82rem] text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-              type="text"
-              value={sousInfo}
-              onChange={(event) => setSousInfo(event.target.value)}
-              placeholder="Ex: Durée 2h - Départ 9h"
+              type="file"
+              accept="image/*"
+              onChange={(event) => setImageFile(event.target.files?.[0] ?? undefined)}
             />
           </label>
           <div className="flex justify-end gap-2 max-sm:flex-col-reverse max-sm:gap-2.5">
@@ -135,14 +127,16 @@ export function AddActiviteModal({ isOpen, onClose, onSubmit }: AddActiviteModal
               type="button"
               className="min-h-[38px] rounded-lg border border-slate-300 bg-white px-[14px] text-[0.82rem] font-semibold text-slate-900 max-sm:min-h-[42px] max-sm:w-full"
               onClick={handleClose}
+              disabled={isSubmitting}
             >
               Annuler
             </button>
             <button
               type="submit"
               className="min-h-[38px] rounded-lg border border-slate-900 bg-slate-900 px-[14px] text-[0.82rem] font-semibold text-white max-sm:min-h-[42px] max-sm:w-full"
+              disabled={isSubmitting}
             >
-              Ajouter
+              {isSubmitting ? "Ajout..." : "Ajouter"}
             </button>
           </div>
         </form>
