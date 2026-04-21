@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { Search } from "lucide-react"
+import { Plus, Search } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import styles from "./ActivitesPage.module.css"
 import { AddActiviteModal } from "./modal/AddActiviteModal"
@@ -63,7 +63,8 @@ export function ActivitesPage() {
             Images
           </button>
           <button type="button" className={styles.addButton} onClick={() => setIsModalOpen(true)}>
-            + Ajouter une activité
+            <Plus size={15} aria-hidden />
+            <span>Ajouter une activité</span>
           </button>
         </div>
       </div>
