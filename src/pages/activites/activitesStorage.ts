@@ -17,6 +17,21 @@ const ACTIVITES_PAR_DEFAUT: ActiviteRow[] = [
   { id: "act-8", titre: "Pont à pilier au cœur des lotus" },
 ]
 
+function parseActivite(item: unknown): ActiviteRow | null {
+  if (!item || typeof item !== "object") return null
+  const o = item as Record<string, unknown>
+  if (typeof o.id !== "string" || !o.id.trim()) return null
+  if (typeof o.titre !== "string" || !o.titre.trim()) return null
+
+  const sousInfoValue = typeof o.sousInfo === "string" ? o.sousInfo.trim() : ""
+
+  return {
+    id: o.id,
+    titre: o.titre.trim(),
+    sousInfo: sousInfoValue || undefined,
+  }
+}
+
 export function loadActivites(): ActiviteRow[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -24,20 +39,7 @@ export function loadActivites(): ActiviteRow[] {
     const parsed = JSON.parse(raw) as unknown
     if (!Array.isArray(parsed)) return ACTIVITES_PAR_DEFAUT
 
-    const items = parsed
-      .map((item) => {
-        if (!item || typeof item !== "object") return null
-        const o = item as Record<string, unknown>
-        if (typeof o.id !== "string" || !o.id.trim()) return null
-        if (typeof o.titre !== "string" || !o.titre.trim()) return null
-        const sousInfoValue = typeof o.sousInfo === "string" ? o.sousInfo.trim() : ""
-        return {
-          id: o.id,
-          titre: o.titre.trim(),
-          sousInfo: sousInfoValue || undefined,
-        } satisfies ActiviteRow
-      })
-      .filter((x): x is ActiviteRow => x !== null)
+    const items = parsed.map(parseActivite).filter((x): x is ActiviteRow => x !== null)
 
     return items.length > 0 ? items : ACTIVITES_PAR_DEFAUT
   } catch {
