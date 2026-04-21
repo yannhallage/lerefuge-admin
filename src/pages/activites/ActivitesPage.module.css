@@ -4,6 +4,7 @@
   width: 100%;
   display: grid;
   gap: 10px;
+  position: relative;
 }
 
 .toolbar {
@@ -54,14 +55,20 @@
 .viewButton {
   min-height: 42px;
   padding: 0 13px;
-  border: 1px solid var(--admin-border);
-  border-radius: 4px;
-  background: var(--admin-bg);
-  color: var(--admin-text);
+  border: 1px solid color-mix(in srgb, var(--admin-primary) 24%, var(--admin-border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--admin-primary-soft) 60%, var(--admin-bg));
+  color: var(--admin-primary-hover);
   font: inherit;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.viewButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
 }
 
 .viewButton[aria-disabled="true"] {
@@ -69,9 +76,10 @@
 }
 
 .viewButtonActive {
-  border-color: color-mix(in srgb, var(--admin-primary) 45%, var(--admin-border));
-  background: var(--admin-primary-soft);
+  border-color: var(--admin-primary);
+  background: var(--admin-primary);
   color: var(--admin-primary-hover);
+  color: #fff;
 }
 
 .addButton {
@@ -111,31 +119,64 @@
   line-height: 1;
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
+.listSection {
   background: var(--admin-bg);
   border: 1px solid var(--admin-border);
-  border-radius: 4px;
+  border-radius: 12px;
+  overflow: clip;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  border-top: 1px solid var(--admin-border);
+  touch-action: pan-y;
   overflow: hidden;
 }
 
-.table th,
-.table td {
-  padding: 13px 14px;
-  text-align: left;
-  border-top: 1px solid var(--admin-border);
-  font-size: 0.78rem;
-  color: var(--admin-text);
+.row:first-child {
+  border-top: none;
 }
 
-.table thead th {
-  border-top: none;
-  background: var(--admin-surface-muted);
-  color: var(--admin-text-muted);
+.rowContent {
+  min-height: 64px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--admin-bg);
+  transition: transform 180ms ease, background-color 160ms ease;
+}
+
+.rowContentSwiped {
+  transform: translateX(-56px);
+  background: var(--admin-surface);
+}
+
+.textBlock {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.rowTitle {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 0.85rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+
+.rowMeta {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.74rem;
+  line-height: 1.3;
 }
 
 .actionCell {
@@ -182,19 +223,61 @@
   background: #fef2f2;
 }
 
-.emptyCell {
-  padding: 18px 14px;
+.emptyState {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 24px 16px;
+  background: radial-gradient(circle at top, var(--admin-primary-soft), transparent 58%);
+  animation: fadePop 300ms ease-out;
+}
+
+.emptyTitle {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.emptySubtitle {
+  margin: 8px 0 0;
   text-align: center;
   color: var(--admin-text-muted);
-  font: inherit;
+  font-size: 0.8rem;
 }
 
-.table tbody tr:hover td {
-  background: var(--admin-surface);
+.fabButton {
+  position: fixed;
+  right: 18px;
+  bottom: 20px;
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 999px;
+  background: var(--admin-primary);
+  color: #fff;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.22);
+  cursor: pointer;
+  z-index: 20;
 }
 
-.table tbody tr:first-child td {
-  border-top: none;
+.fabButton:active {
+  transform: scale(0.97);
+}
+
+@keyframes fadePop {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 900px) {
@@ -207,32 +290,24 @@
     justify-content: stretch;
   }
 
-  .viewButton,
-  .addButton {
+  .viewButton {
     flex: 1;
   }
 
   .addButton {
-    border-radius: 8px;
-    min-height: 44px;
+    display: none;
   }
 
-  .table th,
-  .table td {
+  .rowContent {
     padding: 11px 12px;
-  }
-
-  .actionCell,
-  .actionHeader {
-    width: 88px;
-  }
-
-  .actionButtons {
-    gap: 6px;
   }
 
   .iconButton {
     width: 30px;
     height: 30px;
+  }
+
+  .fabButton {
+    display: inline-flex;
   }
 }

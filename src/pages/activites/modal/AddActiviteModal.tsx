@@ -3,11 +3,12 @@ import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type T
 type AddActiviteModalProps = {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (titre: string) => void
+  onSubmit: (titre: string, sousInfo?: string) => void
 }
 
 export function AddActiviteModal({ isOpen, onClose, onSubmit }: AddActiviteModalProps) {
   const [titre, setTitre] = useState("")
+  const [sousInfo, setSousInfo] = useState("")
   const [dragOffsetY, setDragOffsetY] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const touchStartYRef = useRef<number | null>(null)
@@ -37,12 +38,15 @@ export function AddActiviteModal({ isOpen, onClose, onSubmit }: AddActiviteModal
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!titre.trim()) return
-    onSubmit(titre)
+    const sousInfoValue = sousInfo.trim()
+    onSubmit(titre, sousInfoValue || undefined)
     setTitre("")
+    setSousInfo("")
   }
 
   function handleClose() {
     setTitre("")
+    setSousInfo("")
     setDragOffsetY(0)
     setIsDragging(false)
     touchStartYRef.current = null
@@ -114,6 +118,16 @@ export function AddActiviteModal({ isOpen, onClose, onSubmit }: AddActiviteModal
               placeholder="Ex: Randonnée guidée"
               autoFocus
               required
+            />
+          </label>
+          <label className="grid gap-2 text-[0.8rem] font-semibold text-slate-700">
+            Sous-info (optionnel)
+            <input
+              className="min-h-[38px] w-full rounded-lg border border-slate-300 px-3 text-[0.82rem] text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+              type="text"
+              value={sousInfo}
+              onChange={(event) => setSousInfo(event.target.value)}
+              placeholder="Ex: Durée 2h - Départ 9h"
             />
           </label>
           <div className="flex justify-end gap-2 max-sm:flex-col-reverse max-sm:gap-2.5">

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { Search } from "lucide-react"
+import { Plus, Search } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import styles from "./ActivitesPage.module.css"
 import { ActivitesImagesGallery } from "./components/ActivitesImagesGallery.tsx"
@@ -49,6 +49,15 @@ export function ActivitesImagesPage() {
       </div>
 
       <ActivitesImagesGallery activites={activitesFiltrees} />
+
+      <button
+        type="button"
+        className={styles.fabButton}
+        onClick={handleAjouterImage}
+        aria-label="Ajouter une image"
+      >
+        <Plus size={20} aria-hidden />
+      </button>
     </section>
   )
 }

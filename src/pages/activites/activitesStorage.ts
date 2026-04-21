@@ -1,6 +1,7 @@
 export type ActiviteRow = {
   id: string
   titre: string
+  sousInfo?: string
 }
 
 const STORAGE_KEY = "lerefuge-activites-v2"
@@ -29,7 +30,12 @@ export function loadActivites(): ActiviteRow[] {
         const o = item as Record<string, unknown>
         if (typeof o.id !== "string" || !o.id.trim()) return null
         if (typeof o.titre !== "string" || !o.titre.trim()) return null
-        return { id: o.id, titre: o.titre.trim() } satisfies ActiviteRow
+        const sousInfoValue = typeof o.sousInfo === "string" ? o.sousInfo.trim() : ""
+        return {
+          id: o.id,
+          titre: o.titre.trim(),
+          sousInfo: sousInfoValue || undefined,
+        } satisfies ActiviteRow
       })
       .filter((x): x is ActiviteRow => x !== null)
 

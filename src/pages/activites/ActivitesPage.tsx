@@ -16,10 +16,10 @@ export function ActivitesPage() {
     saveActivites(activites)
   }, [activites])
 
-  function handleAjouterActivite(titre: string) {
+  function handleAjouterActivite(titre: string, sousInfo?: string) {
     const valeur = titre.trim()
     if (!valeur) return
-    setActivites((prev) => [{ id: `act-${Date.now()}`, titre: valeur }, ...prev])
+    setActivites((prev) => [{ id: `act-${Date.now()}`, titre: valeur, sousInfo }, ...prev])
     setIsModalOpen(false)
   }
 
@@ -70,6 +70,15 @@ export function ActivitesPage() {
       </div>
 
       <ActivitesTableSection activites={activitesFiltrees} onRemoveActivite={handleSupprimerActivite} />
+
+      <button
+        type="button"
+        className={styles.fabButton}
+        onClick={() => setIsModalOpen(true)}
+        aria-label="Ajouter une activité"
+      >
+        <Plus size={20} aria-hidden />
+      </button>
 
       <AddActiviteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleAjouterActivite} />
     </section>

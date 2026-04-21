@@ -6,15 +6,17 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type DragEvent,
 } from "react"
 import {
-  Bookmark,
-  ChevronDown,
+  Check,
+  CheckSquare,
   Grid3x3,
   LayoutList,
   Plus,
   RefreshCw,
   Search,
+  Square,
   Trash2,
   Upload,
 } from "lucide-react"
@@ -28,7 +30,6 @@ import {
 } from "./galerieStorage"
 import galerieStyles from "./GaleriePage.module.css"
 
-const FILTRES_PRINCIPAUX = ["Dossiers", "Étiquettes", "Formats", "Date de création", "Types de médias"] as const
 const MASONRY_BREAKPOINTS = {
   default: 4,
   1180: 3,
@@ -36,9 +37,13 @@ const MASONRY_BREAKPOINTS = {
   640: 1,
 }
 
-function fileVersDataUrl(file: File): Promise<string> {
+function fileVersDataUrl(file: File, onProgress?: (progress: number) => void): Promise<string> {
   return new Promise((resolve, reject) => {
     const r = new FileReader()
+    r.onprogress = (event) => {
+      if (!event.lengthComputable || !onProgress) return
+      onProgress(Math.max(0, Math.min(1, event.loaded / event.total)))
+    }
     r.onload = () => resolve(String(r.result))
     r.onerror = () => reject(r.error)
     r.readAsDataURL(file)
@@ -59,6 +64,15 @@ export function GaleriePage() {
   const [querySite, setQuerySite] = useState("")
   const [triSite] = useState<"pertinence" | "recent">("pertinence")
   const [vueGrilleSite, setVueGrilleSite] = useState(true)
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selection, setSelection] = useState<Set<string>>(new Set())
+  const [dragActif, setDragActif] = useState(false)
+  const [uploadState, setUploadState] = useState<{
+    total: number
+    done: number
+    progress: number
+    fichier: string
+  } | null>(null)
 
   useEffect(() => {
     saveGalerieSite(photosSite)
@@ -84,31 +98,128 @@ export function GaleriePage() {
     return copy
   }, [photosSite, querySite, triSite])
 
-  const ajouterFichiers = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files?.length) return
+  const traiterFichiers = useCallback(async (files: FileList | File[]) => {
+    if (!files.length) return
     const now = new Date().toISOString()
     const nouvelles: GaleriePhotoSite[] = []
+    setUploadState({ total: files.length, done: 0, progress: 0, fichier: "" })
     for (let i = 0; i < files.length; i++) {
       const f = files[i]
       if (!f.type.startsWith("image/")) continue
+      setUploadState((prev) =>
+        prev
+          ? {
+              ...prev,
+              fichier: f.name,
+            }
+          : prev,
+      )
+      const src = await fileVersDataUrl(f, (fileProgress) => {
+        setUploadState((prev) => {
+          if (!prev || prev.total === 0) return prev
+          const globalProgress = (prev.done + fileProgress) / prev.total
+          return { ...prev, progress: globalProgress }
+        })
+      })
       nouvelles.push({
         id: `gal-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 8)}`,
-        src: await fileVersDataUrl(f),
+        src,
         alt: f.name.replace(/\.[^.]+$/, "") || "Image importée",
         ajouteeLe: now,
+      })
+      setUploadState((prev) => {
+        if (!prev) return prev
+        const done = prev.done + 1
+        return {
+          ...prev,
+          done,
+          progress: done / prev.total,
+        }
       })
     }
     if (nouvelles.length) {
       setPhotosSite((prev) => [...nouvelles, ...prev])
     }
-    e.target.value = ""
+    setTimeout(() => setUploadState(null), 500)
   }, [])
+
+  const ajouterFichiers = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files
+      if (!files?.length) return
+      await traiterFichiers(files)
+      e.target.value = ""
+    },
+    [traiterFichiers],
+  )
 
   const supprimerPhotoSite = useCallback((id: string) => {
     if (!window.confirm("Retirer cette image de la galerie du site ?")) return
     setPhotosSite((prev) => prev.filter((p) => p.id !== id))
   }, [])
+
+  const supprimerSelection = useCallback(() => {
+    if (selection.size === 0) return
+    const texte =
+      selection.size === 1
+        ? "Retirer l’image sélectionnée de la galerie ?"
+        : `Retirer les ${selection.size} images sélectionnées de la galerie ?`
+    if (!window.confirm(texte)) return
+    setPhotosSite((prev) => prev.filter((p) => !selection.has(p.id)))
+    setSelection(new Set())
+    setSelectionMode(false)
+  }, [selection])
+
+  const toggleSelection = useCallback((id: string) => {
+    setSelection((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }, [])
+
+  const toutSelectionner = useCallback(() => {
+    setSelection(new Set(photosSiteFiltrees.map((p) => p.id)))
+  }, [photosSiteFiltrees])
+
+  const annulerSelection = useCallback(() => {
+    setSelection(new Set())
+  }, [])
+
+  const dragEnter = useCallback((e: DragEvent<HTMLElement>) => {
+    if (!e.dataTransfer.types.includes("Files")) return
+    e.preventDefault()
+    setDragActif(true)
+  }, [])
+
+  const dragOver = useCallback((e: DragEvent<HTMLElement>) => {
+    if (!e.dataTransfer.types.includes("Files")) return
+    e.preventDefault()
+    setDragActif(true)
+  }, [])
+
+  const dragLeave = useCallback((e: DragEvent<HTMLElement>) => {
+    e.preventDefault()
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return
+    setDragActif(false)
+  }, [])
+
+  const drop = useCallback(
+    async (e: DragEvent<HTMLElement>) => {
+      if (!e.dataTransfer.files?.length) return
+      e.preventDefault()
+      setDragActif(false)
+      await traiterFichiers(e.dataTransfer.files)
+    },
+    [traiterFichiers],
+  )
+
+  const aucunMedia = photosSite.length === 0
+  const aucunResultat = photosSite.length > 0 && photosSiteFiltrees.length === 0
 
   return (
     <div className={accueilStyles.wrap}>
@@ -125,27 +236,7 @@ export function GaleriePage() {
 
       <div className={galerieStyles.section}>
         <h3 className={galerieStyles.sectionLead}>Galerie du site</h3>
-        <p className={galerieStyles.sectionHint}>
-          Photos gérées sur cette page. Icône corbeille sur chaque vignette pour retirer l’image.
-        </p>
-
-        <div className={accueilStyles.breadcrumbRow}>
-          <nav className={accueilStyles.breadcrumb} aria-label="Fil d’Ariane">
-            <span className={accueilStyles.breadcrumbMuted}>Médiathèque</span>
-            <span className={accueilStyles.breadcrumbSep} aria-hidden>
-              &gt;
-            </span>
-            <span>Galerie site</span>
-          </nav>
-          <button
-            type="button"
-            className={accueilStyles.quickSearchBtn}
-            aria-label="Aller à la recherche"
-            onClick={() => searchSiteRef.current?.focus()}
-          >
-            <Search size={18} strokeWidth={1.75} aria-hidden />
-          </button>
-        </div>
+        <p className={galerieStyles.sectionHint}>Dépose tes images, organise-les et publie rapidement.</p>
 
         <div className={accueilStyles.toolbarTop}>
           <div className={accueilStyles.searchRow}>
@@ -164,39 +255,21 @@ export function GaleriePage() {
                 />
               </label>
             </div>
-            <div className={accueilStyles.addWrap}>
-              <button
-                type="button"
-                className={accueilStyles.uploadButton}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Upload size={17} strokeWidth={2} aria-hidden />
-                Téléverser
-              </button>
-            </div>
-          </div>
-
-          <div className={accueilStyles.filtersPrimary} role="group" aria-label="Filtres">
-            {FILTRES_PRINCIPAUX.map((label) => (
-              <button key={label} type="button" className={accueilStyles.filterPill} disabled>
-                {label}
-                <ChevronDown className={accueilStyles.filterChevron} size={14} strokeWidth={2} aria-hidden />
-              </button>
-            ))}
-          </div>
-
-          <div className={accueilStyles.filtersSecondary} role="group" aria-label="Filtres complémentaires">
-            <button type="button" className={accueilStyles.filterPill} disabled>
-              Plus
-              <ChevronDown className={accueilStyles.filterChevron} size={14} strokeWidth={2} aria-hidden />
-            </button>
-            <button type="button" className={accueilStyles.filterPillSaved} disabled>
-              <Bookmark className={accueilStyles.filterBookmark} size={14} strokeWidth={2} aria-hidden />
-              Enregistrés
+            <button
+              type="button"
+              className={accueilStyles.uploadButton}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={Boolean(uploadState)}
+            >
+              <Upload size={17} strokeWidth={2} aria-hidden />
+              {uploadState ? "Import en cours…" : "Téléverser"}
             </button>
           </div>
 
-          <div className={accueilStyles.actionsRow}>
+          <div className={galerieStyles.smartActions}>
+            <button type="button" className={accueilStyles.iconGhost} onClick={() => searchSiteRef.current?.focus()}>
+              <Search size={18} strokeWidth={2} aria-hidden />
+            </button>
             <button
               type="button"
               className={accueilStyles.iconGhost}
@@ -206,29 +279,68 @@ export function GaleriePage() {
             >
               <RefreshCw size={18} strokeWidth={2} aria-hidden />
             </button>
-            <div className={accueilStyles.actionsRight}>
-              <div className={accueilStyles.viewToggle} role="group" aria-label="Mode d’affichage galerie site">
-                <button
-                  type="button"
-                  className={[accueilStyles.viewBtn, vueGrilleSite ? accueilStyles.viewBtnOn : ""].join(" ")}
-                  onClick={() => setVueGrilleSite(true)}
-                  title="Grille"
-                  aria-pressed={vueGrilleSite}
-                >
-                  <Grid3x3 size={18} strokeWidth={2} aria-hidden />
+            <button
+              type="button"
+              className={galerieStyles.secondaryBtn}
+              onClick={() => {
+                setSelectionMode((prev) => !prev)
+                setSelection(new Set())
+              }}
+            >
+              {selectionMode ? <CheckSquare size={16} aria-hidden /> : <Square size={16} aria-hidden />}
+              {selectionMode ? "Quitter la sélection" : "Multi-sélection"}
+            </button>
+            {selectionMode ? (
+              <>
+                <button type="button" className={galerieStyles.secondaryBtn} onClick={toutSelectionner}>
+                  Tout sélectionner
+                </button>
+                <button type="button" className={galerieStyles.secondaryBtn} onClick={annulerSelection}>
+                  Vider
                 </button>
                 <button
                   type="button"
-                  className={[accueilStyles.viewBtn, !vueGrilleSite ? accueilStyles.viewBtnOn : ""].join(" ")}
-                  onClick={() => setVueGrilleSite(false)}
-                  title="Liste"
-                  aria-pressed={!vueGrilleSite}
+                  className={galerieStyles.dangerBtn}
+                  onClick={supprimerSelection}
+                  disabled={selection.size === 0}
                 >
-                  <LayoutList size={18} strokeWidth={2} aria-hidden />
+                  <Trash2 size={16} strokeWidth={2} aria-hidden />
+                  Supprimer ({selection.size})
                 </button>
-              </div>
+              </>
+            ) : null}
+            <div className={accueilStyles.viewToggle} role="group" aria-label="Mode d’affichage galerie site">
+              <button
+                type="button"
+                className={[accueilStyles.viewBtn, vueGrilleSite ? accueilStyles.viewBtnOn : ""].join(" ")}
+                onClick={() => setVueGrilleSite(true)}
+                title="Grille"
+                aria-pressed={vueGrilleSite}
+              >
+                <Grid3x3 size={18} strokeWidth={2} aria-hidden />
+              </button>
+              <button
+                type="button"
+                className={[accueilStyles.viewBtn, !vueGrilleSite ? accueilStyles.viewBtnOn : ""].join(" ")}
+                onClick={() => setVueGrilleSite(false)}
+                title="Liste"
+                aria-pressed={!vueGrilleSite}
+              >
+                <LayoutList size={18} strokeWidth={2} aria-hidden />
+              </button>
             </div>
           </div>
+
+          {uploadState ? (
+            <div className={galerieStyles.uploadStatus} role="status" aria-live="polite">
+              <p>
+                Import de <strong>{uploadState.fichier || "image"}</strong> ({uploadState.done}/{uploadState.total})
+              </p>
+              <div className={galerieStyles.progressTrack}>
+                <span className={galerieStyles.progressFill} style={{ width: `${Math.round(uploadState.progress * 100)}%` }} />
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className={accueilStyles.summaryBar}>
@@ -241,80 +353,146 @@ export function GaleriePage() {
           </p>
         </div>
 
-        {vueGrilleSite ? (
-          <Masonry
-            breakpointCols={MASONRY_BREAKPOINTS}
-            className={galerieStyles.masonryGrid}
-            columnClassName={galerieStyles.masonryColumn}
-            role="list"
-            aria-label="Galerie du site"
-          >
-            {photosSiteFiltrees.map((p) => {
-              const cap = legendeSite(p)
-              return (
-                <article key={p.id} className={galerieStyles.masonryCard} role="listitem">
-                  <div className={accueilStyles.thumbBtn}>
-                    <span className={galerieStyles.masonryAspect}>
-                      <img
-                        className={galerieStyles.masonryImg}
-                        src={p.src}
-                        alt={cap}
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <button
-                        type="button"
-                        className={galerieStyles.removeOnThumb}
-                        onClick={() => supprimerPhotoSite(p.id)}
-                        aria-label={`Retirer « ${cap} » de la galerie`}
-                      >
-                        <Trash2 size={16} strokeWidth={2} aria-hidden />
-                      </button>
-                    </span>
-                  </div>
-                </article>
-              )
-            })}
-          </Masonry>
-        ) : (
-          <ul className={[accueilStyles.grid, accueilStyles.gridList].join(" ")} aria-label="Galerie du site">
-            {photosSiteFiltrees.map((p) => {
-              const cap = legendeSite(p)
-              return (
-                <li key={p.id} className={accueilStyles.card}>
-                  <div className={accueilStyles.thumbBtn}>
-                    <span className={accueilStyles.thumbAspect}>
-                      <span className={accueilStyles.thumbInner}>
+        <section
+          className={[galerieStyles.dropZone, dragActif ? galerieStyles.dropZoneActive : ""].join(" ")}
+          onDragEnter={dragEnter}
+          onDragOver={dragOver}
+          onDragLeave={dragLeave}
+          onDrop={drop}
+        >
+          {aucunMedia ? (
+            <div className={galerieStyles.emptyState}>
+              <p className={galerieStyles.emptyTitle}>Ta galerie est vide</p>
+              <p className={galerieStyles.emptyText}>
+                Ajoute des photos pour alimenter la galerie publique. Le glisser-déposer fonctionne aussi depuis ton
+                bureau.
+              </p>
+              <button type="button" className={accueilStyles.uploadButton} onClick={() => fileInputRef.current?.click()}>
+                <Upload size={17} strokeWidth={2} aria-hidden />
+                Ajouter les premières images
+              </button>
+            </div>
+          ) : aucunResultat ? (
+            <div className={galerieStyles.emptyState}>
+              <p className={galerieStyles.emptyTitle}>Aucun résultat</p>
+              <p className={galerieStyles.emptyText}>Aucune image ne correspond à ta recherche actuelle.</p>
+              <button type="button" className={galerieStyles.secondaryBtn} onClick={() => setQuerySite("")}>
+                Réinitialiser la recherche
+              </button>
+            </div>
+          ) : vueGrilleSite ? (
+            <Masonry
+              breakpointCols={MASONRY_BREAKPOINTS}
+              className={galerieStyles.masonryGrid}
+              columnClassName={galerieStyles.masonryColumn}
+              role="list"
+              aria-label="Galerie du site"
+            >
+              {photosSiteFiltrees.map((p) => {
+                const cap = legendeSite(p)
+                const isSelected = selection.has(p.id)
+                return (
+                  <article key={p.id} className={galerieStyles.masonryCard} role="listitem">
+                    <div
+                      className={[accueilStyles.thumbBtn, isSelected ? accueilStyles.thumbBtnSelected : ""].join(" ")}
+                      onClick={() => selectionMode && toggleSelection(p.id)}
+                      role={selectionMode ? "button" : undefined}
+                      tabIndex={selectionMode ? 0 : undefined}
+                      onKeyDown={(e) => {
+                        if (!selectionMode) return
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault()
+                          toggleSelection(p.id)
+                        }
+                      }}
+                    >
+                      <span className={galerieStyles.masonryAspect}>
                         <img
-                          className={accueilStyles.thumbImg}
+                          className={galerieStyles.masonryImg}
                           src={p.src}
                           alt={cap}
                           loading="lazy"
                           decoding="async"
                         />
+                        {selectionMode ? (
+                          <span className={galerieStyles.selectBadge} aria-hidden>
+                            {isSelected ? <Check size={15} strokeWidth={2.75} /> : null}
+                          </span>
+                        ) : null}
+                        <button
+                          type="button"
+                          className={galerieStyles.removeOnThumb}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            supprimerPhotoSite(p.id)
+                          }}
+                          aria-label={`Retirer « ${cap} » de la galerie`}
+                        >
+                          <Trash2 size={16} strokeWidth={2} aria-hidden />
+                        </button>
                       </span>
-                      <button
-                        type="button"
-                        className={galerieStyles.removeOnThumb}
-                        onClick={() => supprimerPhotoSite(p.id)}
-                        aria-label={`Retirer « ${cap} » de la galerie`}
-                      >
-                        <Trash2 size={16} strokeWidth={2} aria-hidden />
-                      </button>
-                    </span>
-                  </div>
-                  <p className={accueilStyles.caption} title={cap}>
-                    {cap}
-                  </p>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-
-        {photosSiteFiltrees.length === 0 ? (
-          <p className={accueilStyles.empty}>Aucun résultat pour cette recherche.</p>
-        ) : null}
+                    </div>
+                  </article>
+                )
+              })}
+            </Masonry>
+          ) : (
+            <ul className={[accueilStyles.grid, accueilStyles.gridList].join(" ")} aria-label="Galerie du site">
+              {photosSiteFiltrees.map((p) => {
+                const cap = legendeSite(p)
+                const isSelected = selection.has(p.id)
+                return (
+                  <li key={p.id} className={accueilStyles.card}>
+                    <div
+                      className={[accueilStyles.thumbBtn, isSelected ? accueilStyles.thumbBtnSelected : ""].join(" ")}
+                      onClick={() => selectionMode && toggleSelection(p.id)}
+                      role={selectionMode ? "button" : undefined}
+                      tabIndex={selectionMode ? 0 : undefined}
+                      onKeyDown={(e) => {
+                        if (!selectionMode) return
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault()
+                          toggleSelection(p.id)
+                        }
+                      }}
+                    >
+                      <span className={accueilStyles.thumbAspect}>
+                        <span className={accueilStyles.thumbInner}>
+                          <img
+                            className={accueilStyles.thumbImg}
+                            src={p.src}
+                            alt={cap}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </span>
+                        {selectionMode ? (
+                          <span className={galerieStyles.selectBadge} aria-hidden>
+                            {isSelected ? <Check size={15} strokeWidth={2.75} /> : null}
+                          </span>
+                        ) : null}
+                        <button
+                          type="button"
+                          className={galerieStyles.removeOnThumb}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            supprimerPhotoSite(p.id)
+                          }}
+                          aria-label={`Retirer « ${cap} » de la galerie`}
+                        >
+                          <Trash2 size={16} strokeWidth={2} aria-hidden />
+                        </button>
+                      </span>
+                    </div>
+                    <p className={accueilStyles.caption} title={cap}>
+                      {cap}
+                    </p>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </section>
 
         <button
           type="button"
