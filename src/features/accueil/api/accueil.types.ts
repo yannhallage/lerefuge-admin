@@ -14,6 +14,7 @@ export type AccueilItem = {
   accueil_id?: string
   titre: string
   image: string | null
+  isFeatured?: boolean
   admin?: AccueilAdmin | null
 }
 
@@ -23,4 +24,8 @@ export type AccueilSingleResponse = ApiEnvelope<AccueilItem>
 export type CreateAccueilInput = {
   titre: string
   image?: File
+}
+
+export type SetFeaturedAccueilInput = {
+  accueil_ids: string[]
 }

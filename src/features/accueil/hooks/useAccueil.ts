@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { accueilApi } from "@/features/accueil/api/accueil.api"
-import type { CreateAccueilInput } from "@/features/accueil/api/accueil.types"
+import type { CreateAccueilInput, SetFeaturedAccueilInput } from "@/features/accueil/api/accueil.types"
 
 const ACCUEIL_QUERY_KEY = ["accueil"] as const
 
@@ -27,6 +27,17 @@ export function useDeleteAccueil() {
 
   return useMutation({
     mutationFn: (id: string) => accueilApi.remove(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ACCUEIL_QUERY_KEY })
+    },
+  })
+}
+
+export function useSetFeaturedAccueil() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: SetFeaturedAccueilInput) => accueilApi.setFeatured(payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ACCUEIL_QUERY_KEY })
     },

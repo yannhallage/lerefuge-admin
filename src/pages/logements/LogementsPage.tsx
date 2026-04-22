@@ -14,6 +14,7 @@ import { libellesCriteres } from "./logementCriteres"
 import styles from "./LogementsPage.module.css"
 import { useDeleteLogement, useLogementList } from "@/features/logement/hooks/useLogement"
 import type { LogementItem } from "@/features/logement/api/logement.types"
+import { useToast } from "@/app/components/ToastProvider"
 type LogementCard = {
   id: string
   nom: string
@@ -30,6 +31,7 @@ export function LogementsPage() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const { data, isLoading, error } = useLogementList()
   const deleteLogement = useDeleteLogement()
+  const toast = useToast()
   const [query, setQuery] = useState("")
   const liste = useMemo<LogementCard[]>(
     () =>
@@ -63,8 +65,19 @@ export function LogementsPage() {
 
   const supprimer = useCallback(async (id: string) => {
     if (!window.confirm("Supprimer ce logement ?")) return
-    await deleteLogement.mutateAsync(id)
-  }, [deleteLogement])
+    try {
+      await deleteLogement.mutateAsync(id)
+      toast.success({
+        title: "Logement supprime",
+        description: "Le logement a ete supprime avec succes.",
+      })
+    } catch {
+      toast.error({
+        title: "Suppression impossible",
+        description: "Le logement n'a pas pu etre supprime.",
+      })
+    }
+  }, [deleteLogement, toast])
 
   const formatPrix = useCallback((prix: number) => {
     return new Intl.NumberFormat("fr-FR", {

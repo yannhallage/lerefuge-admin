@@ -6,6 +6,7 @@ import { libellesCriteres } from "../logementCriteres"
 import listStyles from "../LogementsPage.module.css"
 import pageStyles from "./NouveauLogementPage.module.css"
 import { useCreateLogement } from "@/features/logement/hooks/useLogement"
+import { useToast } from "@/app/components/ToastProvider"
 import type { Logement } from "../createLogement"
 
 async function dataUrlToFile(dataUrl: string, fallbackName: string): Promise<File> {
@@ -19,6 +20,7 @@ export function NouveauLogementPage() {
   const baseId = useId()
   const navigate = useNavigate()
   const createLogement = useCreateLogement()
+  const toast = useToast()
 
   return (
     <div className={listStyles.wrap}>
@@ -77,11 +79,18 @@ export function NouveauLogementPage() {
               specification: specification.length > 0 ? specification : ["Standard"],
               images: [...photos, ...galerie],
             })
+            toast.success({
+              title: "Logement cree",
+              description: `Le logement "${logement.nom}" a ete enregistre.`,
+            })
             navigate("/logements")
           }
 
           run().catch(() => {
-            window.alert("La création du logement a échoué.")
+            toast.error({
+              title: "Creation impossible",
+              description: "La creation du logement a echoue.",
+            })
           })
         }}
       />

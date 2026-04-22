@@ -1,7 +1,9 @@
 import { useCallback, useId, useMemo, useRef, useState } from "react"
 import { ChevronRight, Eye, LayoutGrid, Plus, Search, Trash2, UtensilsCrossed, Users, X } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { BeatLoader } from "react-spinners"
 import { useDeleteRestauration, useRestaurationList } from "@/features/restauration/hooks/useRestauration"
+import { useToast } from "@/app/components/ToastProvider"
 import type { Repas, StatutRepas } from "./repasTypes"
 import styles from "./RestaurationsPage.module.css"
 
@@ -29,6 +31,7 @@ export function RestaurationsPage() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const { data, isLoading, error } = useRestaurationList()
   const deleteRestauration = useDeleteRestauration()
+  const toast = useToast()
   const [query, setQuery] = useState("")
 
   const repas = useMemo<Repas[]>(
@@ -58,9 +61,20 @@ export function RestaurationsPage() {
   const supprimerProduit = useCallback(
     async (id: string, nom: string) => {
       if (!window.confirm(`Supprimer le produit "${nom}" ?`)) return
-      await deleteRestauration.mutateAsync(id)
+      try {
+        await deleteRestauration.mutateAsync(id)
+        toast.success({
+          title: "Repas supprime",
+          description: `Le repas "${nom}" a ete retire avec succes.`,
+        })
+      } catch {
+        toast.error({
+          title: "Suppression impossible",
+          description: `Le repas "${nom}" n'a pas pu etre supprime.`,
+        })
+      }
     },
-    [deleteRestauration],
+    [deleteRestauration, toast],
   )
 
   return (
@@ -198,9 +212,9 @@ export function RestaurationsPage() {
                   <button type="button" className={styles.cardCta}>
                     <span className={styles.cardCtaLabel}>
                       <Eye size={14} strokeWidth={2} aria-hidden className={styles.cardCtaIcon} />
-                      Voir le repas
+                      Voir
                     </span>
-                    <ChevronRight size={16} strokeWidth={2} aria-hidden />
+                    {/* <ChevronRight size={16} strokeWidth={2} aria-hidden /> */}
                   </button>
                   <button
                     type="button"
@@ -210,9 +224,9 @@ export function RestaurationsPage() {
                     aria-label={`Supprimer ${item.nom}`}
                     title={`Supprimer ${item.nom}`}
                   >
-                    <Trash2 size={14} strokeWidth={2} aria-hidden />
-                    {suppressionEnCours ? "Suppression..." : "Supprimer"}
-                  </button>
+                    {/* <Trash2 size={14} strokeWidth={2} aria-hidden /> */}
+                    {suppressionEnCours ?  <BeatLoader size={8} color="#fff" aria-hidden /> : "Supprimer"}
+                    </button>
                 </div>
               </div>
             </li>

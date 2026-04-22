@@ -4,6 +4,7 @@ import type {
   AccueilItem,
   AccueilSingleResponse,
   CreateAccueilInput,
+  SetFeaturedAccueilInput,
 } from "@/features/accueil/api/accueil.types"
 
 function unwrapSingle(payload: unknown): AccueilItem | null {
@@ -59,5 +60,10 @@ export const accueilApi = {
   remove: (id: string) =>
     apiClient<AccueilSingleResponse>(API_ENDPOINTS.accueil.delete(id), {
       method: "DELETE",
+    }),
+  setFeatured: (input: SetFeaturedAccueilInput) =>
+    apiClient<unknown>(API_ENDPOINTS.accueil.selectionner, {
+      method: "POST",
+      body: input,
     }),
 }

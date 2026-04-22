@@ -24,6 +24,7 @@ import Masonry from "react-masonry-css"
 import accueilStyles from "@/pages/accueil/AccueilPage.module.css"
 import { useCreateGalerie, useDeleteGalerie, useGalerieList } from "@/features/galerie/hooks/useGalerie"
 import type { GalerieItem } from "@/features/galerie/api/galerie.types"
+import { useToast } from "@/app/components/ToastProvider"
 import galerieStyles from "./GaleriePage.module.css"
 
 const MASONRY_BREAKPOINTS = {
@@ -90,6 +91,7 @@ export function GaleriePage() {
   const { data, isLoading, isFetching, refetch, error } = useGalerieList()
   const createGalerie = useCreateGalerie()
   const deleteGalerie = useDeleteGalerie()
+  const toast = useToast()
   const [querySite, setQuerySite] = useState("")
   const [triSite] = useState<"pertinence" | "recent">("pertinence")
   const [vueGrilleSite, setVueGrilleSite] = useState(true)
@@ -128,16 +130,24 @@ export function GaleriePage() {
     if (!files.length) return
     setUploadError(null)
     setUploadingCount(files.length)
+    let uploaded = 0
     for (let i = 0; i < files.length; i++) {
       const f = files[i]
       if (!f.type.startsWith("image/")) continue
       const nom = f.name.replace(/\.[^.]+$/, "") || "Image importee"
       await createGalerie.mutateAsync({ nom, image: f })
+      uploaded += 1
       setUploadingCount((prev) => Math.max(0, prev - 1))
     }
     await refetch()
     setUploadingCount(0)
-  }, [createGalerie, refetch])
+    if (uploaded > 0) {
+      toast.success({
+        title: "Televersement termine",
+        description: `${uploaded} image${uploaded > 1 ? "s" : ""} ajoutee${uploaded > 1 ? "s" : ""} a la galerie.`,
+      })
+    }
+  }, [createGalerie, refetch, toast])
 
   const ajouterFichiers = useCallback(
     async (e: ChangeEvent<HTMLInputElement>) => {
@@ -147,10 +157,14 @@ export function GaleriePage() {
         await traiterFichiers(files)
       } catch {
         setUploadError("Le televersement a echoue.")
+        toast.error({
+          title: "Televersement impossible",
+          description: "Une erreur est survenue pendant l'import des images.",
+        })
       }
       e.target.value = ""
     },
-    [traiterFichiers],
+    [traiterFichiers, toast],
   )
 
   const supprimerPhotoSite = useCallback((id: string) => {
@@ -158,10 +172,20 @@ export function GaleriePage() {
     deleteGalerie
       .mutateAsync(id)
       .then(() => refetch())
+      .then(() => {
+        toast.success({
+          title: "Image supprimee",
+          description: "Le visuel a ete retire de la galerie.",
+        })
+      })
       .catch(() => {
         setUploadError("La suppression a echoue.")
+        toast.error({
+          title: "Suppression impossible",
+          description: "Le visuel n'a pas pu etre supprime.",
+        })
       })
-  }, [deleteGalerie, refetch])
+  }, [deleteGalerie, refetch, toast])
 
   const supprimerSelection = useCallback(() => {
     if (selection.size === 0) return
@@ -176,11 +200,19 @@ export function GaleriePage() {
       .then(() => {
         setSelection(new Set())
         setSelectionMode(false)
+        toast.success({
+          title: "Suppression effectuee",
+          description: `${ids.length} image${ids.length > 1 ? "s" : ""} retiree${ids.length > 1 ? "s" : ""} de la galerie.`,
+        })
       })
       .catch(() => {
         setUploadError("Une ou plusieurs suppressions ont echoue.")
+        toast.error({
+          title: "Suppression partielle",
+          description: "Une ou plusieurs images n'ont pas pu etre supprimees.",
+        })
       })
-  }, [deleteGalerie, refetch, selection])
+  }, [deleteGalerie, refetch, selection, toast])
 
   const toggleSelection = useCallback((id: string) => {
     setSelection((prev) => {
@@ -225,9 +257,17 @@ export function GaleriePage() {
       if (!e.dataTransfer.files?.length) return
       e.preventDefault()
       setDragActif(false)
-      await traiterFichiers(e.dataTransfer.files)
+      try {
+        await traiterFichiers(e.dataTransfer.files)
+      } catch {
+        setUploadError("Le televersement par glisser-deposer a echoue.")
+        toast.error({
+          title: "Import echoue",
+          description: "Le televersement par glisser-deposer a echoue.",
+        })
+      }
     },
-    [traiterFichiers],
+    [traiterFichiers, toast],
   )
 
   const aucunMedia = photosSite.length === 0

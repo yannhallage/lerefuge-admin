@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   accueil: {
     list: "/accueil",
     create: "/accueil",
+    selectionner: "/accueil/selectionner",
     byId: (id: string) => `/accueil/${id}`,
     update: (id: string) => `/accueil/${id}`,
     delete: (id: string) => `/accueil/${id}`,

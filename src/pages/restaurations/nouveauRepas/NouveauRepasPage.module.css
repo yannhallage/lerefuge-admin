@@ -169,8 +169,26 @@
   cursor: pointer;
 }
 
+.btnPrimary:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
 .btnPrimary:hover {
   background: #2d3eb0;
+}
+
+.spinner {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 900px) {

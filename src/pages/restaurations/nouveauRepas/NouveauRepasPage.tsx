@@ -1,9 +1,11 @@
 import { useId, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { ArrowLeft, Plus } from "lucide-react"
+import { BeatLoader } from "react-spinners"
 import listStyles from "../RestaurationsPage.module.css"
 import pageStyles from "./NouveauRepasPage.module.css"
 import { useCreateRestauration } from "@/features/restauration/hooks/useRestauration"
+import { useToast } from "@/app/components/ToastProvider"
 import type { StatutRepas } from "../repasTypes"
 
 type FormState = {
@@ -27,12 +29,19 @@ export function NouveauRepasPage() {
   const navigate = useNavigate()
   const [form, setForm] = useState<FormState>(INITIAL_FORM)
   const createRestauration = useCreateRestauration()
+  const toast = useToast()
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const prix = Number(form.prix)
-    if (!form.nom.trim() || Number.isNaN(prix) || prix < 0) return
+    if (!form.nom.trim() || Number.isNaN(prix) || prix < 0) {
+      toast.warning({
+        title: "Formulaire incomplet",
+        description: "Renseignez un nom et un prix valide avant d'enregistrer.",
+      })
+      return
+    }
 
     setSubmitError(null)
     try {
@@ -41,9 +50,17 @@ export function NouveauRepasPage() {
         prix,
         description: form.description.trim(),
       })
+      toast.success({
+        title: "Repas ajoute",
+        description: `Le repas "${form.nom.trim()}" a ete enregistre.`,
+      })
       navigate("/carte")
     } catch {
       setSubmitError("La creation du repas a echoue.")
+      toast.error({
+        title: "Creation impossible",
+        description: "La creation du repas a echoue.",
+      })
     }
   }
 
@@ -153,9 +170,13 @@ export function NouveauRepasPage() {
           <button type="button" className={pageStyles.btnGhost} onClick={() => navigate("/carte")}>
             Annuler
           </button>
-          <button type="submit" className={pageStyles.btnPrimary}>
-            <Plus size={16} strokeWidth={2} aria-hidden />
-            {createRestauration.isPending ? "Ajout en cours..." : "Ajouter le repas"}
+          <button type="submit" className={pageStyles.btnPrimary} disabled={createRestauration.isPending}>
+            {createRestauration.isPending ? (
+              <BeatLoader size={8} color="#fff" aria-hidden />
+            ) : (
+              <Plus size={16} strokeWidth={2} aria-hidden />
+            )}
+            {createRestauration.isPending ? "" : "Ajouter le repas"}
           </button>
         </div>
       </form>

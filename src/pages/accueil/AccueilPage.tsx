@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type CSSProperties,
 } from "react"
 import {
   Bookmark,
@@ -16,15 +17,23 @@ import {
   LayoutList,
   Plus,
   RefreshCw,
+  Save,
   Search,
   Trash2,
   Upload,
 } from "lucide-react"
 import styles from "./AccueilPage.module.css"
-import { useAccueilList, useCreateAccueil, useDeleteAccueil } from "@/features/accueil/hooks/useAccueil"
+import {
+  useAccueilList,
+  useCreateAccueil,
+  useDeleteAccueil,
+  useSetFeaturedAccueil,
+} from "@/features/accueil/hooks/useAccueil"
 import type { AccueilItem } from "@/features/accueil/api/accueil.types"
+import { useToast } from "@/app/components/ToastProvider"
 
 const STORAGE_KEY = "lerefuge-accueil-images-selection"
+const MAX_SELECTION = 3
 
 export type AccueilLibraryImage = {
   id: string
@@ -62,11 +71,15 @@ export function AccueilPage() {
   const { data, isLoading, isFetching, refetch, error } = useAccueilList()
   const createAccueil = useCreateAccueil()
   const deleteAccueil = useDeleteAccueil()
+  const setFeaturedAccueil = useSetFeaturedAccueil()
+  const toast = useToast()
   const [query, setQuery] = useState("")
   const [tri, setTri] = useState<"pertinence" | "recent">("pertinence")
   const [vueGrille, setVueGrille] = useState(true)
   const [selection, setSelection] = useState<Set<string>>(loadSelection)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadTotalCount, setUploadTotalCount] = useState(0)
   const [uploadingCount, setUploadingCount] = useState(0)
 
   const images = useMemo<AccueilLibraryImage[]>(() => {
@@ -78,7 +91,7 @@ export function AccueilPage() {
         src: item.image as string,
         alt: item.titre || "Image accueil",
         deleteId: item.accueil_id,
-        dejaUtilisee: true,
+        dejaUtilisee: Boolean(item.isFeatured),
       }))
   }, [data])
 
@@ -104,21 +117,71 @@ export function AccueilPage() {
     setSelection((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
-      else next.add(id)
+      else if (next.size >= MAX_SELECTION) {
+        toast.warning({
+          title: "Maximum atteint",
+          description: `Vous pouvez selectionner au maximum ${MAX_SELECTION} images.`,
+        })
+        return prev
+      } else next.add(id)
       return next
     })
-  }, [])
+  }, [toast])
+
+  const enregistrerSelection = useCallback(async () => {
+    if (selection.size !== MAX_SELECTION) {
+      toast.warning({
+        title: "Selection incomplete",
+        description: `Selectionnez exactement ${MAX_SELECTION} images pour continuer.`,
+      })
+      return
+    }
+
+    const selectedAccueilIds = [...selection].filter((id) =>
+      images.some((image) => image.deleteId === id),
+    )
+
+    if (selectedAccueilIds.length !== MAX_SELECTION) {
+      toast.error({
+        title: "Selection invalide",
+        description: "Veuillez selectionner exactement 3 images valides.",
+      })
+      return
+    }
+
+    try {
+      await setFeaturedAccueil.mutateAsync({ accueil_ids: selectedAccueilIds })
+      setSelection(new Set())
+      await refetch()
+      toast.success({
+        title: "Selection enregistree",
+        description: "Les 3 visuels de l’accueil ont ete mis a jour.",
+      })
+    } catch {
+      toast.error({
+        title: "Enregistrement impossible",
+        description: "Une erreur est survenue pendant l'enregistrement des visuels.",
+      })
+    }
+  }, [images, refetch, selection, setFeaturedAccueil, toast])
 
   const handleFichiers = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const run = async () => {
       const files = e.target.files
       if (!files?.length) return
+      const imagesToUpload = Array.from(files).filter((file) => file.type.startsWith("image/"))
+      if (!imagesToUpload.length) {
+        setUploadError("Aucune image valide a televerser.")
+        e.target.value = ""
+        return
+      }
       setUploadError(null)
-      setUploadingCount(files.length)
+      setIsUploading(true)
+      setUploadTotalCount(imagesToUpload.length)
+      setUploadingCount(imagesToUpload.length)
 
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-        if (!file.type.startsWith("image/")) continue
+      for (let i = 0; i < imagesToUpload.length; i++) {
+        const file = imagesToUpload[i]
         const titre = file.name.replace(/\.[^.]+$/, "") || "Image importee"
         await createAccueil.mutateAsync({ titre, image: file })
         setUploadingCount((prev) => Math.max(0, prev - 1))
@@ -126,14 +189,24 @@ export function AccueilPage() {
       await refetch()
       e.target.value = ""
       setUploadingCount(0)
+      setIsUploading(false)
+      toast.success({
+        title: "Televersement termine",
+        description: `${imagesToUpload.length} fichier${imagesToUpload.length > 1 ? "s" : ""} traite${imagesToUpload.length > 1 ? "s" : ""}.`,
+      })
     }
 
     run().catch(() => {
       setUploadError("Le televersement a echoue.")
       setUploadingCount(0)
+      setIsUploading(false)
       e.target.value = ""
+      toast.error({
+        title: "Televersement impossible",
+        description: "Une erreur est survenue pendant l'import des visuels.",
+      })
     })
-  }, [createAccueil, refetch])
+  }, [createAccueil, refetch, toast])
 
   const supprimerImage = useCallback((img: AccueilLibraryImage) => {
     if (!img.deleteId) {
@@ -152,16 +225,30 @@ export function AccueilPage() {
         })
         return refetch()
       })
+      .then(() => {
+        toast.success({
+          title: "Image supprimee",
+          description: `Le visuel "${img.alt}" a ete retire.`,
+        })
+      })
       .catch(() => {
         setUploadError("La suppression a echoue.")
+        toast.error({
+          title: "Suppression impossible",
+          description: `Le visuel "${img.alt}" n'a pas pu etre supprime.`,
+        })
       })
-  }, [deleteAccueil, refetch])
+  }, [deleteAccueil, refetch, toast])
 
   useEffect(() => {
     saveSelection(selection)
   }, [selection])
 
   const nombreSelection = selection.size
+  const isSelectionReady = nombreSelection === MAX_SELECTION
+  const uploadedCount = uploadTotalCount - uploadingCount
+  const uploadProgress =
+    uploadTotalCount > 0 ? Math.min(100, Math.round((uploadedCount / uploadTotalCount) * 100)) : 0
 
   return (
     <div className={styles.wrap}>
@@ -189,13 +276,23 @@ export function AccueilPage() {
         <p className={styles.empty}>Impossible de charger les visuels de l’accueil.</p>
       ) : null}
       {uploadError ? <p className={styles.empty}>{uploadError}</p> : null}
-      {createAccueil.isPending ? (
-        <p className={styles.empty}>
-          Televersement en cours...
-          {uploadingCount > 0
-            ? ` (${uploadingCount} restant${uploadingCount > 1 ? "s" : ""})`
-            : ""}
-        </p>
+      {isUploading ? (
+        <div
+          className={styles.uploadProgressWrap}
+          role="status"
+          aria-live="polite"
+          style={{ "--upload-progress": `${uploadProgress}%` } as CSSProperties}
+        >
+          <p className={styles.uploadProgressText}>
+            Televersement en cours... {uploadProgress}% ({uploadedCount}/{uploadTotalCount})
+          </p>
+          <div className={styles.uploadProgressBar} aria-hidden>
+            <span className={styles.uploadProgressFill} style={{ width: `${uploadProgress}%` }} />
+          </div>
+          <div className={styles.uploadProgressMobileCircle} aria-hidden>
+            <span className={styles.uploadProgressMobileValue}>{uploadProgress}%</span>
+          </div>
+        </div>
       ) : null}
 
       <div className={styles.breadcrumbRow}>
@@ -238,10 +335,10 @@ export function AccueilPage() {
               type="button"
               className={styles.uploadButton}
               onClick={() => fileInputRef.current?.click()}
-              disabled={createAccueil.isPending}
+              disabled={isUploading}
             >
               <Upload size={17} strokeWidth={2} aria-hidden />
-              {createAccueil.isPending ? "Televersement..." : "Téléverser"}
+              {isUploading ? "Televersement..." : "Téléverser"}
             </button>
           </div>
         </div>
@@ -325,9 +422,25 @@ export function AccueilPage() {
           <span className={styles.summarySub}>
             {" "}
             · <strong>{nombreSelection}</strong>{" "}
-            {nombreSelection === 1 ? "sélectionnée" : "sélectionnées"} pour l’accueil
+            {nombreSelection === 1 ? "sélectionnée" : "sélectionnées"} pour l’accueil (max {MAX_SELECTION})
           </span>
         </p>
+        <button
+          type="button"
+          className={[
+            styles.saveSelectionButton,
+            isSelectionReady ? styles.saveSelectionButtonVisible : "",
+          ].join(" ")}
+          onClick={enregistrerSelection}
+          aria-label="Enregistrer les images de l’accueil"
+          title="Enregistrer la sélection"
+          disabled={!isSelectionReady || setFeaturedAccueil.isPending}
+          aria-hidden={!isSelectionReady}
+          tabIndex={isSelectionReady ? 0 : -1}
+        >
+          <Save size={18} strokeWidth={2.25} aria-hidden />
+          <span className={styles.saveSelectionLabel}>Enregistrer</span>
+        </button>
       </div>
       {isLoading ? <p className={styles.empty}>Chargement des visuels...</p> : null}
 
@@ -339,10 +452,17 @@ export function AccueilPage() {
           const selected = selection.has(img.id)
           return (
             <li key={img.id} className={styles.card}>
-              <button
-                type="button"
+              <div
                 className={[styles.thumbBtn, selected ? styles.thumbBtnSelected : ""].join(" ")}
                 onClick={() => toggleSelection(img.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    toggleSelection(img.id)
+                  }
+                }}
+                role="button"
+                tabIndex={0}
                 aria-pressed={selected}
                 aria-label={
                   selected
@@ -375,7 +495,7 @@ export function AccueilPage() {
                     </span>
                   ) : null}
                 </span>
-              </button>
+              </div>
               <p className={styles.caption} title={img.alt}>
                 {img.alt}
               </p>
@@ -392,7 +512,7 @@ export function AccueilPage() {
         type="button"
         className={styles.fab}
         onClick={() => fileInputRef.current?.click()}
-        disabled={createAccueil.isPending}
+        disabled={isUploading}
         aria-label="Ajouter des images"
       >
         <Plus size={16} strokeWidth={2.25} aria-hidden />
