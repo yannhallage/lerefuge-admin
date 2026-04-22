@@ -22,6 +22,7 @@ import {
   Trash2,
   Upload,
 } from "lucide-react"
+import { BeatLoader } from "react-spinners"
 import styles from "./AccueilPage.module.css"
 import {
   useAccueilList,
@@ -62,6 +63,10 @@ function saveSelection(ids: Set<string>) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]))
 }
 
+function getSelectionId(img: AccueilLibraryImage): string {
+  return img.deleteId ?? img.id
+}
+
 const FILTRES_PRINCIPAUX = ["Dossiers", "Étiquettes", "Formats", "Date de création", "Types de médias"] as const
 
 export function AccueilPage() {
@@ -95,6 +100,8 @@ export function AccueilPage() {
       }))
   }, [data])
 
+  const validSelectionIds = useMemo(() => new Set(images.map((img) => getSelectionId(img))), [images])
+
   const filtrees = useMemo(() => {
     const q = query.trim().toLowerCase()
     let list = images
@@ -118,11 +125,16 @@ export function AccueilPage() {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else if (next.size >= MAX_SELECTION) {
-        toast.warning({
-          title: "Maximum atteint",
-          description: `Vous pouvez selectionner au maximum ${MAX_SELECTION} images.`,
+        // A 3 selections, remplacer la plus ancienne rend le comportement plus fluide.
+        const [oldest] = next
+        if (oldest) {
+          next.delete(oldest)
+        }
+        next.add(id)
+        toast.info({
+          title: "Selection mise a jour",
+          description: "Une image precedente a ete remplacee.",
         })
-        return prev
       } else next.add(id)
       return next
     })
@@ -137,9 +149,7 @@ export function AccueilPage() {
       return
     }
 
-    const selectedAccueilIds = [...selection].filter((id) =>
-      images.some((image) => image.deleteId === id),
-    )
+    const selectedAccueilIds = [...selection].filter((id) => validSelectionIds.has(id))
 
     if (selectedAccueilIds.length !== MAX_SELECTION) {
       toast.error({
@@ -163,7 +173,7 @@ export function AccueilPage() {
         description: "Une erreur est survenue pendant l'enregistrement des visuels.",
       })
     }
-  }, [images, refetch, selection, setFeaturedAccueil, toast])
+  }, [refetch, selection, setFeaturedAccueil, toast, validSelectionIds])
 
   const handleFichiers = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const run = async () => {
@@ -218,9 +228,10 @@ export function AccueilPage() {
       .mutateAsync(img.deleteId)
       .then(() => {
         setSelection((prev) => {
-          if (!prev.has(img.id)) return prev
+          const selectionId = getSelectionId(img)
+          if (!prev.has(selectionId)) return prev
           const next = new Set(prev)
-          next.delete(img.id)
+          next.delete(selectionId)
           return next
         })
         return refetch()
@@ -243,6 +254,14 @@ export function AccueilPage() {
   useEffect(() => {
     saveSelection(selection)
   }, [selection])
+
+  useEffect(() => {
+    setSelection((prev) => {
+      const cleaned = new Set([...prev].filter((id) => validSelectionIds.has(id)))
+      if (cleaned.size === prev.size) return prev
+      return cleaned
+    })
+  }, [validSelectionIds])
 
   const nombreSelection = selection.size
   const isSelectionReady = nombreSelection === MAX_SELECTION
@@ -438,8 +457,14 @@ export function AccueilPage() {
           aria-hidden={!isSelectionReady}
           tabIndex={isSelectionReady ? 0 : -1}
         >
-          <Save size={18} strokeWidth={2.25} aria-hidden />
-          <span className={styles.saveSelectionLabel}>Enregistrer</span>
+          {setFeaturedAccueil.isPending ? (
+            <BeatLoader size={7} color="#ffffff" loading={setFeaturedAccueil.isPending} aria-label="Enregistrement en cours" />
+          ) : (
+            <>
+              <Save size={18} strokeWidth={2.25} aria-hidden />
+              <span className={styles.saveSelectionLabel}>Enregistrer</span>
+            </>
+          )}
         </button>
       </div>
       {isLoading ? <p className={styles.empty}>Chargement des visuels...</p> : null}
@@ -449,16 +474,17 @@ export function AccueilPage() {
         aria-label="Bibliothèque d’images"
       >
         {filtrees.map((img) => {
-          const selected = selection.has(img.id)
+          const selectionId = getSelectionId(img)
+          const selected = selection.has(selectionId)
           return (
             <li key={img.id} className={styles.card}>
               <div
                 className={[styles.thumbBtn, selected ? styles.thumbBtnSelected : ""].join(" ")}
-                onClick={() => toggleSelection(img.id)}
+                onClick={() => toggleSelection(selectionId)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault()
-                    toggleSelection(img.id)
+                    toggleSelection(selectionId)
                   }
                 }}
                 role="button"
