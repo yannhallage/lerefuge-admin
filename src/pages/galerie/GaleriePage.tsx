@@ -465,22 +465,26 @@ export function GaleriePage() {
                         }
                       }}
                     >
-                      <span className={galerieStyles.masonryAspect}>
-                        <img
-                          className={galerieStyles.masonryImg}
-                          src={p.src}
-                          alt={cap}
-                          loading="lazy"
-                          decoding="async"
-                        />
+                      <span className={accueilStyles.thumbAspect}>
+                        <span className={accueilStyles.thumbInner}>
+                          <img
+                            className={accueilStyles.thumbImg}
+                            src={p.src}
+                            alt={cap}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </span>
                         {selectionMode ? (
-                          <span className={galerieStyles.selectBadge} aria-hidden>
-                            {isSelected ? <Check size={15} strokeWidth={2.75} /> : null}
-                          </span>
+                          isSelected ? (
+                            <span className={accueilStyles.checkOverlay} aria-hidden>
+                              <Check size={15} strokeWidth={2.75} />
+                            </span>
+                          ) : null
                         ) : null}
                         <button
                           type="button"
-                          className={galerieStyles.removeOnThumb}
+                          className={accueilStyles.removeOnThumb}
                           onClick={(e) => {
                             e.stopPropagation()
                             supprimerPhotoSite(p.id)
@@ -491,6 +495,9 @@ export function GaleriePage() {
                         </button>
                       </span>
                     </div>
+                    <p className={accueilStyles.caption} title={cap}>
+                      {cap}
+                    </p>
                   </article>
                 )
               })}
@@ -532,7 +539,7 @@ export function GaleriePage() {
                         ) : null}
                         <button
                           type="button"
-                          className={galerieStyles.removeOnThumb}
+                          className={accueilStyles.removeOnThumb}
                           onClick={(e) => {
                             e.stopPropagation()
                             supprimerPhotoSite(p.id)
