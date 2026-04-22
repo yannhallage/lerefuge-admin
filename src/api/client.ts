@@ -5,6 +5,7 @@ import { getAccessToken } from "@/shared/utils/storage"
 const rawBase = (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? ""
 const DEFAULT_TIMEOUT_MS = 15_000
 
+// j'ai ajouté cette fonction pour normaliser l'URL de l'API
 function normalizeBaseUrl(base: string): string {
   if (!base) return ""
 
