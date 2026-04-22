@@ -17,10 +17,11 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Trash2,
   Upload,
 } from "lucide-react"
 import styles from "./AccueilPage.module.css"
-import { useAccueilList, useCreateAccueil } from "@/features/accueil/hooks/useAccueil"
+import { useAccueilList, useCreateAccueil, useDeleteAccueil } from "@/features/accueil/hooks/useAccueil"
 import type { AccueilItem } from "@/features/accueil/api/accueil.types"
 
 const STORAGE_KEY = "lerefuge-accueil-images-selection"
@@ -29,6 +30,7 @@ export type AccueilLibraryImage = {
   id: string
   src: string
   alt: string
+  deleteId?: string
   /** Indique qu’une version de ce visuel est déjà publiée sur l’accueil client */
   dejaUtilisee?: boolean
 }
@@ -59,6 +61,7 @@ export function AccueilPage() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const { data, isLoading, isFetching, refetch, error } = useAccueilList()
   const createAccueil = useCreateAccueil()
+  const deleteAccueil = useDeleteAccueil()
   const [query, setQuery] = useState("")
   const [tri, setTri] = useState<"pertinence" | "recent">("pertinence")
   const [vueGrille, setVueGrille] = useState(true)
@@ -74,6 +77,7 @@ export function AccueilPage() {
         id: item.accueil_id ?? `${item.titre}-${index}`,
         src: item.image as string,
         alt: item.titre || "Image accueil",
+        deleteId: item.accueil_id,
         dejaUtilisee: true,
       }))
   }, [data])
@@ -130,6 +134,28 @@ export function AccueilPage() {
       e.target.value = ""
     })
   }, [createAccueil, refetch])
+
+  const supprimerImage = useCallback((img: AccueilLibraryImage) => {
+    if (!img.deleteId) {
+      setUploadError("Impossible de supprimer cette image.")
+      return
+    }
+    if (!window.confirm(`Supprimer « ${img.alt} » des visuels de l’accueil ?`)) return
+    deleteAccueil
+      .mutateAsync(img.deleteId)
+      .then(() => {
+        setSelection((prev) => {
+          if (!prev.has(img.id)) return prev
+          const next = new Set(prev)
+          next.delete(img.id)
+          return next
+        })
+        return refetch()
+      })
+      .catch(() => {
+        setUploadError("La suppression a echoue.")
+      })
+  }, [deleteAccueil, refetch])
 
   useEffect(() => {
     saveSelection(selection)
@@ -328,6 +354,18 @@ export function AccueilPage() {
                   <span className={styles.thumbInner}>
                     <img className={styles.thumbImg} src={img.src} alt="" loading="lazy" decoding="async" />
                   </span>
+                  <button
+                    type="button"
+                    className={styles.removeOnThumb}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      supprimerImage(img)
+                    }}
+                    aria-label={`Supprimer « ${img.alt} »`}
+                    disabled={!img.deleteId || deleteAccueil.isPending}
+                  >
+                    <Trash2 size={16} strokeWidth={2} aria-hidden />
+                  </button>
                   {img.dejaUtilisee ? (
                     <span className={styles.badgeUsed}>Déjà utilisée sur l’accueil</span>
                   ) : null}

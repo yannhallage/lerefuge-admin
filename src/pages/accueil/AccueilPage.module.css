@@ -593,7 +593,7 @@
 .checkOverlay {
   position: absolute;
   top: 6px;
-  right: 6px;
+  left: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -603,6 +603,33 @@
   background: #3448c8;
   color: #fff;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+}
+
+.removeOnThumb {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.24);
+}
+
+.removeOnThumb:hover {
+  background: rgba(220, 38, 38, 0.92);
+}
+
+.removeOnThumb:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .caption {

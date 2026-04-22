@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom"
 import styles from "./RouteChangeLoader.module.css"
 
 const LOADER_DURATION_MS = 700
-const LOADER_LOGO_URL = "logo-refuge-du-bandama.png"
+const LOADER_LOGO_URL = "https://res.cloudinary.com/durcdpzsk/image/upload/v1776856025/WhatsApp_Image_2026-04-22_at_11.05.58_edykev.jpg"
 export function RouteChangeLoader() {
   const location = useLocation()
   const [isVisible, setIsVisible] = useState(false)

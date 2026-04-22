@@ -1,7 +1,7 @@
-import { useId, useMemo, useRef, useState } from "react"
-import { ChevronRight, Eye, LayoutGrid, Plus, Search, UtensilsCrossed, Users } from "lucide-react"
+import { useCallback, useId, useMemo, useRef, useState } from "react"
+import { ChevronRight, Eye, LayoutGrid, Plus, Search, Trash2, UtensilsCrossed, Users, X } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import { useRestaurationList } from "@/features/restauration/hooks/useRestauration"
+import { useDeleteRestauration, useRestaurationList } from "@/features/restauration/hooks/useRestauration"
 import type { Repas, StatutRepas } from "./repasTypes"
 import styles from "./RestaurationsPage.module.css"
 
@@ -28,6 +28,7 @@ export function RestaurationsPage() {
   const navigate = useNavigate()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const { data, isLoading, error } = useRestaurationList()
+  const deleteRestauration = useDeleteRestauration()
   const [query, setQuery] = useState("")
 
   const repas = useMemo<Repas[]>(
@@ -53,6 +54,14 @@ export function RestaurationsPage() {
   }, [repas, query])
 
   const rechercheActive = query.trim().length > 0
+  const suppressionEnCours = deleteRestauration.isPending
+  const supprimerProduit = useCallback(
+    async (id: string, nom: string) => {
+      if (!window.confirm(`Supprimer le produit "${nom}" ?`)) return
+      await deleteRestauration.mutateAsync(id)
+    },
+    [deleteRestauration],
+  )
 
   return (
     <div className={styles.wrap}>
@@ -96,6 +105,19 @@ export function RestaurationsPage() {
                 onChange={(e) => setQuery(e.target.value)}
                 autoComplete="off"
               />
+              {query ? (
+                <button
+                  type="button"
+                  className={styles.clearQueryBtn}
+                  onClick={() => {
+                    setQuery("")
+                    searchInputRef.current?.focus()
+                  }}
+                  aria-label="Effacer la recherche"
+                >
+                  <X size={14} strokeWidth={2.2} aria-hidden />
+                </button>
+              ) : null}
             </label>
           </div>
           <div className={styles.addWrap}>
@@ -172,13 +194,26 @@ export function RestaurationsPage() {
                     {LIBELLES_STATUT[item.statut]}
                   </span>
                 </div>
-                <button type="button" className={styles.cardCta}>
-                  <span className={styles.cardCtaLabel}>
-                    <Eye size={14} strokeWidth={2} aria-hidden className={styles.cardCtaIcon} />
-                    Voir le repas
-                  </span>
-                  <ChevronRight size={16} strokeWidth={2} aria-hidden />
-                </button>
+                <div className={styles.cardActions}>
+                  <button type="button" className={styles.cardCta}>
+                    <span className={styles.cardCtaLabel}>
+                      <Eye size={14} strokeWidth={2} aria-hidden className={styles.cardCtaIcon} />
+                      Voir le repas
+                    </span>
+                    <ChevronRight size={16} strokeWidth={2} aria-hidden />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.cardDeleteButton}
+                    onClick={() => supprimerProduit(item.id, item.nom)}
+                    disabled={suppressionEnCours}
+                    aria-label={`Supprimer ${item.nom}`}
+                    title={`Supprimer ${item.nom}`}
+                  >
+                    <Trash2 size={14} strokeWidth={2} aria-hidden />
+                    {suppressionEnCours ? "Suppression..." : "Supprimer"}
+                  </button>
+                </div>
               </div>
             </li>
           ))}

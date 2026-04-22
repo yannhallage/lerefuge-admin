@@ -14,9 +14,8 @@ function unwrapList(payload: unknown): ActiviteItem[] {
 
 export const activitesApi = {
   list: async () => {
-    const response = await apiClient<unknown>(API_ENDPOINTS.activites.list, {
-      withAuth: false,
-    })
+    // L'endpoint activites est protege cote API: on conserve l'auth par defaut.
+    const response = await apiClient<unknown>(API_ENDPOINTS.activites.list)
     return unwrapList(response)
   },
   create: (input: CreateActiviteInput) => {

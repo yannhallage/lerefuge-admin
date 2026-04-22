@@ -1,19 +1,37 @@
-import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type TouchEvent } from "react"
+import { useEffect, useMemo, useRef, useState, type DragEvent, type FormEvent } from "react"
+import { Camera, ImagePlus, X } from "lucide-react"
+import { useToast } from "@/app/components/ToastProvider"
+import styles from "./AddActiviteModal.module.css"
 
 type AddActiviteModalProps = {
   isOpen: boolean
   onClose: () => void
   onSubmit: (payload: { nom: string; image?: File }) => void | Promise<void>
   isSubmitting?: boolean
+  errorMessage?: string
 }
 
-export function AddActiviteModal({ isOpen, onClose, onSubmit, isSubmitting = false }: AddActiviteModalProps) {
+export function AddActiviteModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  isSubmitting = false,
+  errorMessage,
+}: AddActiviteModalProps) {
+  const toast = useToast()
+  const [isMobile, setIsMobile] = useState(false)
   const [titre, setTitre] = useState("")
   const [imageFile, setImageFile] = useState<File | undefined>(undefined)
-  const [dragOffsetY, setDragOffsetY] = useState(0)
-  const [isDragging, setIsDragging] = useState(false)
-  const touchStartYRef = useRef<number | null>(null)
-  const dragCloseThreshold = 110
+  const [isDropActive, setIsDropActive] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 640px)")
+    const update = () => setIsMobile(media.matches)
+    update()
+    media.addEventListener("change", update)
+    return () => media.removeEventListener("change", update)
+  }, [])
 
   useEffect(() => {
     if (!isOpen) return
@@ -28,118 +46,204 @@ export function AddActiviteModal({ isOpen, onClose, onSubmit, isSubmitting = fal
     return () => window.removeEventListener("keydown", handleEscape)
   }, [isOpen, onClose])
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const nom = titre.trim()
-    if (!nom) return
-    void onSubmit({ nom, image: imageFile })
-    setTitre("")
-    setImageFile(undefined)
+    if (!nom) {
+      toast.warning({
+        title: "Nom obligatoire",
+        description: "Veuillez renseigner le nom de l'activite avant de valider.",
+      })
+      return
+    }
+    try {
+      await onSubmit({ nom, image: imageFile })
+      setTitre("")
+      setImageFile(undefined)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+      toast.success({
+        title: "Activite ajoutee",
+        description: `L'activite "${nom}" a ete enregistree avec succes.`,
+      })
+    } catch {
+      // L'erreur est affichée depuis la prop errorMessage gérée par le parent.
+      toast.error({
+        title: "Echec de l'ajout",
+        description: "Une erreur est survenue pendant l'enregistrement de l'activite.",
+      })
+    }
   }
+
+  const canSubmit = useMemo(() => titre.trim().length > 0 && !isSubmitting, [titre, isSubmitting])
+  const previewUrl = useMemo(() => (imageFile ? URL.createObjectURL(imageFile) : ""), [imageFile])
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    }
+  }, [previewUrl])
 
   function handleClose() {
     setTitre("")
     setImageFile(undefined)
-    setDragOffsetY(0)
-    setIsDragging(false)
-    touchStartYRef.current = null
+    setIsDropActive(false)
+    if (fileInputRef.current) fileInputRef.current.value = ""
     onClose()
   }
 
-  function handleSheetTouchStart(event: TouchEvent<HTMLDivElement>) {
-    touchStartYRef.current = event.touches[0]?.clientY ?? null
-    setIsDragging(true)
+  function handleFileSelection(file?: File) {
+    if (!file) return
+    setImageFile(file)
+    setIsDropActive(false)
   }
 
-  function handleSheetTouchMove(event: TouchEvent<HTMLDivElement>) {
-    if (touchStartYRef.current === null) return
-    const currentY = event.touches[0]?.clientY ?? touchStartYRef.current
-    const nextOffset = Math.max(0, currentY - touchStartYRef.current)
-    setDragOffsetY(nextOffset)
+  function handleDropAreaDragOver(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault()
+    setIsDropActive(true)
   }
 
-  function handleSheetTouchEnd() {
-    setIsDragging(false)
-    touchStartYRef.current = null
-    if (dragOffsetY >= dragCloseThreshold) {
-      handleClose()
-      return
-    }
-    setDragOffsetY(0)
+  function handleDropAreaDragLeave(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault()
+    setIsDropActive(false)
+  }
+
+  function handleDropAreaDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault()
+    const file = event.dataTransfer.files?.[0]
+    handleFileSelection(file)
   }
 
   if (!isOpen) return null
 
-  const modalStyle: CSSProperties = {
-    transform: `translateY(${dragOffsetY}px)`,
-    transition: isDragging ? "none" : "transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+  const content = (
+    <>
+      {isMobile ? <div className={styles.drawerHandle} aria-hidden /> : null}
+      <h2 id="add-activite-title" className={styles.title}>
+        Ajouter une activité
+      </h2>
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <label className={styles.label}>
+          Nom de l'activité
+          <input
+            className={styles.input}
+            type="text"
+            value={titre}
+            onChange={(event) => setTitre(event.target.value)}
+            placeholder="Ex: Randonnée guidée"
+            autoFocus
+            required
+          />
+        </label>
+        <div className={styles.label}>
+          Image (optionnel)
+          <input
+            ref={fileInputRef}
+            className={styles.fileInput}
+            type="file"
+            accept="image/*"
+            onChange={(event) => handleFileSelection(event.target.files?.[0])}
+          />
+          <div
+            className={`${styles.uploadCard} ${isDropActive ? styles.uploadCardActive : ""}`}
+            onDragOver={handleDropAreaDragOver}
+            onDragEnter={handleDropAreaDragOver}
+            onDragLeave={handleDropAreaDragLeave}
+            onDrop={handleDropAreaDrop}
+          >
+            <div className={styles.uploadTopRow}>
+              <div className={styles.uploadIconBadge}>
+                <ImagePlus size={20} aria-hidden />
+              </div>
+              <div className={styles.uploadText}>
+                <span className={styles.uploadTitle}>Ajouter une image</span>
+                <span className={styles.uploadSub}>PNG, JPG, WEBP - 1 image maximum</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              className={styles.pickImageButton}
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Choisir depuis la galerie"
+            >
+              <Camera size={16} aria-hidden />
+              <span>Choisir depuis la galerie</span>
+            </button>
+            {imageFile ? (
+              <div className={styles.previewCard}>
+                <img src={previewUrl} alt="Aperçu de l'image" className={styles.previewImage} />
+                <div className={styles.previewMeta}>
+                  <span className={styles.previewName}>{imageFile.name}</span>
+                  <span className={styles.previewSize}>{Math.max(1, Math.round(imageFile.size / 1024))} Ko</span>
+                </div>
+              </div>
+            ) : null}
+          </div>
+          {imageFile ? (
+            <button
+              type="button"
+              className={styles.removeFileButton}
+              onClick={() => {
+                setImageFile(undefined)
+                if (fileInputRef.current) fileInputRef.current.value = ""
+              }}
+            >
+              <X size={14} aria-hidden />
+              <span>Retirer l'image</span>
+            </button>
+          ) : null}
+        </div>
+        {errorMessage ? <p className={styles.errorMessage}>{errorMessage}</p> : null}
+        <div className={styles.actions}>
+          <button
+            type="submit"
+            className={styles.submitButton}
+            disabled={!canSubmit}
+          >
+            {isSubmitting ? "Ajout..." : "Ajouter"}
+          </button>
+          <button
+            type="button"
+            className={styles.cancelButton}
+            onClick={handleClose}
+            disabled={isSubmitting}
+          >
+            Annuler
+          </button>
+        </div>
+      </form>
+    </>
+  )
+
+  if (isMobile) {
+    return (
+      <div className={styles.mobileOverlay} role="presentation" onClick={handleClose}>
+        <div
+          className={styles.mobileDrawer}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-activite-title"
+          onClick={(event) => event.stopPropagation()}
+        >
+          {content}
+        </div>
+      </div>
+    )
   }
 
   return (
     <div
-      className="fixed inset-0 z-[60] grid place-items-center overflow-y-auto bg-slate-950/55 p-4 backdrop-blur-[2px] max-sm:items-end max-sm:p-0"
+      className={styles.overlay}
       role="presentation"
       onClick={handleClose}
     >
       <div
-        className="max-h-[calc(100vh-32px)] w-full max-w-[520px] overflow-y-auto rounded-[14px] border border-slate-200 bg-white p-5 shadow-[0_24px_40px_rgba(2,8,20,0.24)] max-sm:max-h-[min(88vh,720px)] max-sm:max-w-full max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:border-b-0 max-sm:px-4 max-sm:pt-[14px] max-sm:pb-[calc(16px+env(safe-area-inset-bottom,0px))]"
-        style={modalStyle}
+        className={styles.modal}
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-activite-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <div
-          className="mx-auto mb-3 mt-0.5 hidden h-[5px] w-11 rounded-full bg-slate-300 touch-none max-sm:block"
-          aria-hidden="true"
-          onTouchStart={handleSheetTouchStart}
-          onTouchMove={handleSheetTouchMove}
-          onTouchEnd={handleSheetTouchEnd}
-          onTouchCancel={handleSheetTouchEnd}
-        />
-        <h2 id="add-activite-title" className="mb-[14px] text-[0.96rem] font-bold text-slate-900">
-          Ajouter une activité
-        </h2>
-        <form className="grid gap-[14px]" onSubmit={handleSubmit}>
-          <label className="grid gap-2 text-[0.8rem] font-semibold text-slate-700">
-            Nom de l'activité
-            <input
-              className="min-h-[38px] w-full rounded-lg border border-slate-300 px-3 text-[0.82rem] text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-              type="text"
-              value={titre}
-              onChange={(event) => setTitre(event.target.value)}
-              placeholder="Ex: Randonnée guidée"
-              autoFocus
-              required
-            />
-          </label>
-          <label className="grid gap-2 text-[0.8rem] font-semibold text-slate-700">
-            Image (optionnel)
-            <input
-              className="min-h-[38px] w-full rounded-lg border border-slate-300 px-3 text-[0.82rem] text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-              type="file"
-              accept="image/*"
-              onChange={(event) => setImageFile(event.target.files?.[0] ?? undefined)}
-            />
-          </label>
-          <div className="flex justify-end gap-2 max-sm:flex-col-reverse max-sm:gap-2.5">
-            <button
-              type="button"
-              className="min-h-[38px] rounded-lg border border-slate-300 bg-white px-[14px] text-[0.82rem] font-semibold text-slate-900 max-sm:min-h-[42px] max-sm:w-full"
-              onClick={handleClose}
-              disabled={isSubmitting}
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              className="min-h-[38px] rounded-lg border border-slate-900 bg-slate-900 px-[14px] text-[0.82rem] font-semibold text-white max-sm:min-h-[42px] max-sm:w-full"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Ajout..." : "Ajouter"}
-            </button>
-          </div>
-        </form>
+        {content}
       </div>
     </div>
   )

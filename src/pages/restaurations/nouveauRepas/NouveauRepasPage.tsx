@@ -98,12 +98,17 @@ export function NouveauRepasPage() {
 
           <label className={pageStyles.field}>
             <span className={pageStyles.label}>Categorie</span>
-            <input
-              className={pageStyles.input}
+            <select
+              className={pageStyles.select}
               value={form.categorie}
               onChange={(e) => setForm((prev) => ({ ...prev, categorie: e.target.value }))}
-              placeholder="Ex: Plat principal"
-            />
+            >
+              <option value="Plat principal">Plat principal</option>
+              <option value="Entree">Entree</option>
+              <option value="Dessert">Dessert</option>
+              <option value="Boisson">Boisson</option>
+              <option value="Accompagnement">Accompagnement</option>
+            </select>
           </label>
 
           <label className={pageStyles.field}>
