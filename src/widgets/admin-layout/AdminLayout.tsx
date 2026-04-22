@@ -15,7 +15,6 @@ import {
   Menu,
   Mountain,
   Newspaper,
-  Search,
   Settings,
   UtensilsCrossed,
 } from "lucide-react"

@@ -64,6 +64,6 @@ export const accueilApi = {
   setFeatured: (input: SetFeaturedAccueilInput) =>
     apiClient<unknown>(API_ENDPOINTS.accueil.selectionner, {
       method: "POST",
-      body: input,
+      body: JSON.stringify(input),
     }),
 }
