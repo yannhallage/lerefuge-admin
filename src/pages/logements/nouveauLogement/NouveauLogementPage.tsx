@@ -1,20 +1,12 @@
 import { useId } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
-import { CreateLogementForm } from "../createLogement"
-import { libellesCriteres } from "../logementCriteres"
+import { CreateLogementForm, toCreateLogementInput } from "../createLogement"
 import listStyles from "../LogementsPage.module.css"
 import pageStyles from "./NouveauLogementPage.module.css"
 import { useCreateLogement } from "@/features/logement/hooks/useLogement"
 import { useToast } from "@/app/components/ToastProvider"
 import type { Logement } from "../createLogement"
-
-async function dataUrlToFile(dataUrl: string, fallbackName: string): Promise<File> {
-  const response = await fetch(dataUrl)
-  const blob = await response.blob()
-  const ext = blob.type.split("/")[1] ?? "jpg"
-  return new File([blob], `${fallbackName}.${ext}`, { type: blob.type || "image/jpeg" })
-}
 
 export function NouveauLogementPage() {
   const baseId = useId()
@@ -61,24 +53,12 @@ export function NouveauLogementPage() {
         presentation="page"
         mode="creation"
         logementEdition={null}
+        isSubmitting={createLogement.isPending}
         onCancel={() => navigate("/logements")}
         onSaved={(logement: Logement) => {
           const run = async () => {
-            const photos = await Promise.all(
-              logement.photosPresentation.map((src, idx) => dataUrlToFile(src, `presentation-${idx + 1}`)),
-            )
-            const galerie = await Promise.all(
-              logement.galeriePhotos.map((src, idx) => dataUrlToFile(src, `galerie-${idx + 1}`)),
-            )
-            const specification = libellesCriteres(logement.criteresIds)
-            await createLogement.mutateAsync({
-              nom_logement: logement.nom,
-              prix: logement.prix,
-              aire_chambre: logement.aireChambre,
-              nbre_personne: logement.nbrePersonne,
-              specification: specification.length > 0 ? specification : ["Standard"],
-              images: [...photos, ...galerie],
-            })
+            const payload = await toCreateLogementInput(logement)
+            await createLogement.mutateAsync(payload)
             toast.success({
               title: "Logement cree",
               description: `Le logement "${logement.nom}" a ete enregistre.`,

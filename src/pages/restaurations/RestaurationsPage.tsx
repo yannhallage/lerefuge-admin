@@ -1,5 +1,5 @@
 import { useCallback, useId, useMemo, useRef, useState } from "react"
-import { ChevronRight, Eye, LayoutGrid, Plus, Search, Trash2, UtensilsCrossed, Users, X } from "lucide-react"
+import { Eye, LayoutGrid, Plus, Search, UtensilsCrossed, Users, X } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { BeatLoader } from "react-spinners"
 import { useDeleteRestauration, useRestaurationList } from "@/features/restauration/hooks/useRestauration"
@@ -43,6 +43,7 @@ export function RestaurationsPage() {
         prix: typeof item.prix === "number" ? item.prix : Number(item.prix ?? 0),
         description: item.description?.trim() || "Aucune description",
         statut: "disponible" as StatutRepas,
+        image: item.image?.trim() || null,
       })),
     [data],
   )
@@ -183,7 +184,11 @@ export function RestaurationsPage() {
             <li key={item.id} className={styles.card}>
               <div className={styles.cardMedia}>
                 <div className={styles.cardHero} aria-hidden>
-                  <UtensilsCrossed size={30} strokeWidth={1.75} />
+                  {item.image ? (
+                    <img src={item.image} alt={`Photo de ${item.nom}`} className={styles.cardHeroImage} />
+                  ) : (
+                    <UtensilsCrossed size={30} strokeWidth={1.75} />
+                  )}
                 </div>
                 <span className={styles.cardBadge} aria-hidden>
                   {FORMAT_PRIX.format(item.prix)}

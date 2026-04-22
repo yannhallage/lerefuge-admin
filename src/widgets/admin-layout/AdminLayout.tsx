@@ -50,13 +50,13 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       // { to: "/contact", label: "Contact", icon: Mail },
     ],
   },
-  {
-    label: "Référencement & site",
-    items: [
-      { to: "/seo", label: "SEO", icon: Search },
-      { to: "/parametres", label: "Paramètres globaux", icon: Settings },
-    ],
-  },
+  // {
+  //   label: "Référencement & site",
+  //   items: [
+  //     { to: "/seo", label: "SEO", icon: Search },
+  //     { to: "/parametres", label: "Paramètres globaux", icon: Settings },
+  //   ],
+  // },
 ]
 
 function titleFromPath(pathname: string): string {

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useState, type ChangeEvent, type FormEvent } from "react"
 import { ImagePlus, X } from "lucide-react"
+import { BeatLoader } from "react-spinners"
 import { CRITERES_DEFAUT } from "../logementCriteres"
 import type { Logement } from "./logementTypes"
 import styles from "./CreateLogementForm.module.css"
@@ -30,6 +31,7 @@ export type CreateLogementFormProps = {
   logementEdition: Logement | null
   onCancel: () => void
   onSaved: (logement: Logement) => void
+  isSubmitting?: boolean
   /**
    * `page` : pleine page (création), sans en-tête type panneau ni bouton fermer.
    * `modal` : édition dans la liste, avec titre et fermeture.
@@ -42,6 +44,7 @@ export function CreateLogementForm({
   logementEdition,
   onCancel,
   onSaved,
+  isSubmitting = false,
   presentation = "modal",
 }: CreateLogementFormProps) {
   const formTitleId = useId()
@@ -329,11 +332,17 @@ export function CreateLogementForm({
       </div>
 
       <div className={styles.formActions}>
-        <button type="button" className={styles.btnSecondary} onClick={onCancel}>
+        <button type="button" className={styles.btnSecondary} onClick={onCancel} disabled={isSubmitting}>
           Annuler
         </button>
-        <button type="submit" className={styles.btnPrimary}>
-          {mode === "creation" ? "Enregistrer le logement" : "Enregistrer les modifications"}
+        <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
+          {isSubmitting ? (
+            <BeatLoader size={8} color="#fff" aria-hidden />
+          ) : mode === "creation" ? (
+            "Enregistrer le logement"
+          ) : (
+            "Enregistrer les modifications"
+          )}
         </button>
       </div>
     </form>

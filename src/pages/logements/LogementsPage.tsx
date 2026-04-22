@@ -12,7 +12,10 @@ import {
 import { useNavigate } from "react-router-dom"
 import { libellesCriteres } from "./logementCriteres"
 import styles from "./LogementsPage.module.css"
-import { useDeleteLogement, useLogementList } from "@/features/logement/hooks/useLogement"
+import {
+  useDeleteLogement,
+  useLogementList,
+} from "@/features/logement/hooks/useLogement"
 import type { LogementItem } from "@/features/logement/api/logement.types"
 import { useToast } from "@/app/components/ToastProvider"
 type LogementCard = {
@@ -90,7 +93,6 @@ export function LogementsPage() {
   const totalListe = liste.length
   const totalFiltres = filtres.length
   const rechercheActive = query.trim().length > 0
-
   return (
     <div className={styles.wrap}>
       <section className={styles.intro} aria-labelledby={`${baseId}-intro-title`}>
@@ -140,7 +142,11 @@ export function LogementsPage() {
             </label>
           </div>
           <div className={styles.addWrap}>
-            <button type="button" className={styles.uploadButton} onClick={() => navigate("/logements/nouveau")}>
+            <button
+              type="button"
+              className={styles.uploadButton}
+              onClick={() => navigate("/logements/nouveau")}
+            >
               <Plus size={17} strokeWidth={2} aria-hidden />
               Nouveau logement
             </button>
@@ -186,7 +192,11 @@ export function LogementsPage() {
                 Réinitialiser la recherche
               </button>
             ) : (
-              <button type="button" className={styles.uploadButton} onClick={() => navigate("/logements/nouveau")}>
+              <button
+                type="button"
+                className={styles.uploadButton}
+                onClick={() => navigate("/logements/nouveau")}
+              >
                 <Plus size={17} strokeWidth={2} aria-hidden />
                 Nouveau logement
               </button>

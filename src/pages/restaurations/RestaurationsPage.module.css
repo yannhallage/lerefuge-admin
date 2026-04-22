@@ -249,6 +249,13 @@
   color: #e2e8f0;
 }
 
+.cardHeroImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .cardBadge {
   position: absolute;
   top: 12px;
