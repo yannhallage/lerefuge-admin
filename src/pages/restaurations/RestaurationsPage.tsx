@@ -1,7 +1,9 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react"
-import { ChevronRight, Eye, LayoutGrid, Plus, Search, UtensilsCrossed, Users } from "lucide-react"
+import { useCallback, useId, useMemo, useRef, useState } from "react"
+import { Eye, LayoutGrid, Plus, Search, UtensilsCrossed, Users, X } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import { loadRepas, saveRepas } from "./repasStorage"
+import { BeatLoader } from "react-spinners"
+import { useDeleteRestauration, useRestaurationList } from "@/features/restauration/hooks/useRestauration"
+import { useToast } from "@/app/components/ToastProvider"
 import type { Repas, StatutRepas } from "./repasTypes"
 import styles from "./RestaurationsPage.module.css"
 
@@ -27,12 +29,24 @@ export function RestaurationsPage() {
   const searchId = useId()
   const navigate = useNavigate()
   const searchInputRef = useRef<HTMLInputElement>(null)
-  const [repas] = useState<Repas[]>(loadRepas)
+  const { data, isLoading, error } = useRestaurationList()
+  const deleteRestauration = useDeleteRestauration()
+  const toast = useToast()
   const [query, setQuery] = useState("")
 
-  useEffect(() => {
-    saveRepas(repas)
-  }, [repas])
+  const repas = useMemo<Repas[]>(
+    () =>
+      (data ?? []).map((item, index) => ({
+        id: item.resto_id ?? item.id ?? `resto-${index}`,
+        nom: item.nom?.trim() || "Repas sans nom",
+        categorie: "Plat principal",
+        prix: typeof item.prix === "number" ? item.prix : Number(item.prix ?? 0),
+        description: item.description?.trim() || "Aucune description",
+        statut: "disponible" as StatutRepas,
+        image: item.image?.trim() || null,
+      })),
+    [data],
+  )
 
   const repasFiltres = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -44,14 +58,32 @@ export function RestaurationsPage() {
   }, [repas, query])
 
   const rechercheActive = query.trim().length > 0
+  const suppressionEnCours = deleteRestauration.isPending
+  const supprimerProduit = useCallback(
+    async (id: string, nom: string) => {
+      if (!window.confirm(`Supprimer le produit "${nom}" ?`)) return
+      try {
+        await deleteRestauration.mutateAsync(id)
+        toast.success({
+          title: "Repas supprime",
+          description: `Le repas "${nom}" a ete retire avec succes.`,
+        })
+      } catch {
+        toast.error({
+          title: "Suppression impossible",
+          description: `Le repas "${nom}" n'a pas pu etre supprime.`,
+        })
+      }
+    },
+    [deleteRestauration, toast],
+  )
 
   return (
     <div className={styles.wrap}>
       <section className={styles.intro}>
         <h2 className={styles.introTitle}>Carte restaurant</h2>
         <p className={styles.introText}>
-          Cette page affiche les repas du restaurant. Les donnees sont locales pour le moment, en attente du
-          branchement API.
+          Cette page affiche les repas du restaurant depuis l API.
         </p>
       </section>
 
@@ -88,6 +120,19 @@ export function RestaurationsPage() {
                 onChange={(e) => setQuery(e.target.value)}
                 autoComplete="off"
               />
+              {query ? (
+                <button
+                  type="button"
+                  className={styles.clearQueryBtn}
+                  onClick={() => {
+                    setQuery("")
+                    searchInputRef.current?.focus()
+                  }}
+                  aria-label="Effacer la recherche"
+                >
+                  <X size={14} strokeWidth={2.2} aria-hidden />
+                </button>
+              ) : null}
             </label>
           </div>
           <div className={styles.addWrap}>
@@ -108,6 +153,8 @@ export function RestaurationsPage() {
           </span>
         </p>
       </div>
+      {isLoading ? <p className={styles.emptyText}>Chargement des repas...</p> : null}
+      {error ? <p className={styles.emptyText}>Impossible de charger les repas.</p> : null}
 
       {repasFiltres.length === 0 ? (
         <div className={styles.empty}>
@@ -137,7 +184,11 @@ export function RestaurationsPage() {
             <li key={item.id} className={styles.card}>
               <div className={styles.cardMedia}>
                 <div className={styles.cardHero} aria-hidden>
-                  <UtensilsCrossed size={30} strokeWidth={1.75} />
+                  {item.image ? (
+                    <img src={item.image} alt={`Photo de ${item.nom}`} className={styles.cardHeroImage} />
+                  ) : (
+                    <UtensilsCrossed size={30} strokeWidth={1.75} />
+                  )}
                 </div>
                 <span className={styles.cardBadge} aria-hidden>
                   {FORMAT_PRIX.format(item.prix)}
@@ -162,13 +213,26 @@ export function RestaurationsPage() {
                     {LIBELLES_STATUT[item.statut]}
                   </span>
                 </div>
-                <button type="button" className={styles.cardCta}>
-                  <span className={styles.cardCtaLabel}>
-                    <Eye size={14} strokeWidth={2} aria-hidden className={styles.cardCtaIcon} />
-                    Voir le repas
-                  </span>
-                  <ChevronRight size={16} strokeWidth={2} aria-hidden />
-                </button>
+                <div className={styles.cardActions}>
+                  <button type="button" className={styles.cardCta}>
+                    <span className={styles.cardCtaLabel}>
+                      <Eye size={14} strokeWidth={2} aria-hidden className={styles.cardCtaIcon} />
+                      Voir
+                    </span>
+                    {/* <ChevronRight size={16} strokeWidth={2} aria-hidden /> */}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.cardDeleteButton}
+                    onClick={() => supprimerProduit(item.id, item.nom)}
+                    disabled={suppressionEnCours}
+                    aria-label={`Supprimer ${item.nom}`}
+                    title={`Supprimer ${item.nom}`}
+                  >
+                    {/* <Trash2 size={14} strokeWidth={2} aria-hidden /> */}
+                    {suppressionEnCours ?  <BeatLoader size={8} color="#fff" aria-hidden /> : "Supprimer"}
+                    </button>
+                </div>
               </div>
             </li>
           ))}

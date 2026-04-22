@@ -7,6 +7,7 @@ export type Repas = {
   prix: number
   description: string
   statut: StatutRepas
+  image?: string | null
 }
 
 function parseStatut(x: unknown): StatutRepas {
@@ -30,5 +31,6 @@ export function parseRepas(x: unknown): Repas | null {
     prix: Number(o.prix.toFixed(2)),
     description: o.description,
     statut: parseStatut(o.statut),
+    image: typeof o.image === "string" ? o.image : null,
   }
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useState, type ChangeEvent, type FormEvent } from "react"
 import { ImagePlus, X } from "lucide-react"
+import { BeatLoader } from "react-spinners"
 import { CRITERES_DEFAUT } from "../logementCriteres"
 import type { Logement } from "./logementTypes"
 import styles from "./CreateLogementForm.module.css"
@@ -7,6 +8,8 @@ import styles from "./CreateLogementForm.module.css"
 const VIDE: Omit<Logement, "id"> = {
   nom: "",
   prix: 0,
+  aireChambre: 0,
+  nbrePersonne: undefined,
   photosPresentation: ["", ""],
   galeriePhotos: [],
   descriptionChambre: "",
@@ -28,6 +31,7 @@ export type CreateLogementFormProps = {
   logementEdition: Logement | null
   onCancel: () => void
   onSaved: (logement: Logement) => void
+  isSubmitting?: boolean
   /**
    * `page` : pleine page (création), sans en-tête type panneau ni bouton fermer.
    * `modal` : édition dans la liste, avec titre et fermeture.
@@ -40,6 +44,7 @@ export function CreateLogementForm({
   logementEdition,
   onCancel,
   onSaved,
+  isSubmitting = false,
   presentation = "modal",
 }: CreateLogementFormProps) {
   const formTitleId = useId()
@@ -50,6 +55,8 @@ export function CreateLogementForm({
       setForm({
         nom: logementEdition.nom,
         prix: logementEdition.prix,
+        aireChambre: logementEdition.aireChambre ?? 0,
+        nbrePersonne: logementEdition.nbrePersonne,
         photosPresentation: [...logementEdition.photosPresentation] as [string, string],
         galeriePhotos: [...logementEdition.galeriePhotos],
         descriptionChambre: logementEdition.descriptionChambre,
@@ -107,6 +114,7 @@ export function CreateLogementForm({
     }
 
     const prix = form.prix < 0 ? 0 : form.prix
+    const aireChambre = form.aireChambre < 0 ? 0 : form.aireChambre
     const photosPresentation: [string, string] = [form.photosPresentation[0], form.photosPresentation[1]]
     const galeriePhotos = [...form.galeriePhotos]
     const descriptionChambre = form.descriptionChambre.trim()
@@ -118,6 +126,8 @@ export function CreateLogementForm({
         id: `log-${Date.now()}`,
         nom,
         prix,
+        aireChambre,
+        nbrePersonne: form.nbrePersonne,
         photosPresentation,
         galeriePhotos,
         descriptionChambre,
@@ -128,6 +138,8 @@ export function CreateLogementForm({
         ...logementEdition,
         nom,
         prix,
+        aireChambre,
+        nbrePersonne: form.nbrePersonne,
         photosPresentation,
         galeriePhotos,
         descriptionChambre,
@@ -180,6 +192,31 @@ export function CreateLogementForm({
               step={1}
               value={form.prix || ""}
               onChange={(e) => setForm((p) => ({ ...p, prix: Number(e.target.value) || 0 }))}
+            />
+          </label>
+          <label className={styles.field}>
+            <span className={styles.label}>Aire de la chambre (m²)</span>
+            <input
+              className={styles.input}
+              type="number"
+              min={0}
+              step={1}
+              value={form.aireChambre || ""}
+              onChange={(e) => setForm((p) => ({ ...p, aireChambre: Number(e.target.value) || 0 }))}
+              required
+            />
+          </label>
+          <label className={styles.field}>
+            <span className={styles.label}>Nombre de personnes</span>
+            <input
+              className={styles.input}
+              type="number"
+              min={1}
+              step={1}
+              value={form.nbrePersonne || ""}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, nbrePersonne: Number(e.target.value) || undefined }))
+              }
             />
           </label>
         </div>
@@ -295,11 +332,17 @@ export function CreateLogementForm({
       </div>
 
       <div className={styles.formActions}>
-        <button type="button" className={styles.btnSecondary} onClick={onCancel}>
+        <button type="button" className={styles.btnSecondary} onClick={onCancel} disabled={isSubmitting}>
           Annuler
         </button>
-        <button type="submit" className={styles.btnPrimary}>
-          {mode === "creation" ? "Enregistrer le logement" : "Enregistrer les modifications"}
+        <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
+          {isSubmitting ? (
+            <BeatLoader size={8} color="#fff" aria-hidden />
+          ) : mode === "creation" ? (
+            "Enregistrer le logement"
+          ) : (
+            "Enregistrer les modifications"
+          )}
         </button>
       </div>
     </form>

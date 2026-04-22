@@ -188,6 +188,13 @@
   transition: background 0.15s ease, transform 0.1s ease;
 }
 
+.submitContent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 .submit:hover {
   background: #38a169;
 }

@@ -1,14 +1,18 @@
 import { useId } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
-import { CreateLogementForm } from "../createLogement"
-import { loadLogements, saveLogements } from "../logementStorage"
+import { CreateLogementForm, toCreateLogementInput } from "../createLogement"
 import listStyles from "../LogementsPage.module.css"
 import pageStyles from "./NouveauLogementPage.module.css"
+import { useCreateLogement } from "@/features/logement/hooks/useLogement"
+import { useToast } from "@/app/components/ToastProvider"
+import type { Logement } from "../createLogement"
 
 export function NouveauLogementPage() {
   const baseId = useId()
   const navigate = useNavigate()
+  const createLogement = useCreateLogement()
+  const toast = useToast()
 
   return (
     <div className={listStyles.wrap}>
@@ -17,8 +21,7 @@ export function NouveauLogementPage() {
           Nouveau logement
         </h2>
         <p className={listStyles.introText}>
-          Même principe que la liste des logements : fiche sur toute la largeur utile, enregistrement local dans le
-          navigateur, puis retour au catalogue.
+          Création d’un logement branchée sur l’API. Les données et les images sont enregistrées côté serveur.
         </p>
       </section>
 
@@ -50,11 +53,25 @@ export function NouveauLogementPage() {
         presentation="page"
         mode="creation"
         logementEdition={null}
+        isSubmitting={createLogement.isPending}
         onCancel={() => navigate("/logements")}
-        onSaved={(logement) => {
-          const actuels = loadLogements()
-          saveLogements([logement, ...actuels])
-          navigate("/logements")
+        onSaved={(logement: Logement) => {
+          const run = async () => {
+            const payload = await toCreateLogementInput(logement)
+            await createLogement.mutateAsync(payload)
+            toast.success({
+              title: "Logement cree",
+              description: `Le logement "${logement.nom}" a ete enregistre.`,
+            })
+            navigate("/logements")
+          }
+
+          run().catch(() => {
+            toast.error({
+              title: "Creation impossible",
+              description: "La creation du logement a echoue.",
+            })
+          })
         }}
       />
     </div>

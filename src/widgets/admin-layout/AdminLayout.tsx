@@ -43,21 +43,20 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       // { to: "/a-propos", label: "À propos", icon: Info },
       { to: "/logements", label: "Logements", icon: BedDouble },
       { to: "/reservations", label: "Réservations", icon: CalendarCheck2 },
-      // { to: "/offres", label: "Offres", icon: Tag },
+      { to: "/carte", label: "Restaurations", icon: UtensilsCrossed },
       { to: "/activites", label: "Activités", icon: Mountain },
-      { to: "/carte", label: "Carte restaurant", icon: UtensilsCrossed },
       { to: "/blog", label: "Blog / actualités", icon: Newspaper },
       { to: "/galerie", label: "Galerie", icon: Images },
       // { to: "/contact", label: "Contact", icon: Mail },
     ],
   },
-  {
-    label: "Référencement & site",
-    items: [
-      { to: "/seo", label: "SEO", icon: Search },
-      { to: "/parametres", label: "Paramètres globaux", icon: Settings },
-    ],
-  },
+  // {
+  //   label: "Référencement & site",
+  //   items: [
+  //     { to: "/seo", label: "SEO", icon: Search },
+  //     { to: "/parametres", label: "Paramètres globaux", icon: Settings },
+  //   ],
+  // },
 ]
 
 function titleFromPath(pathname: string): string {
