@@ -3,34 +3,31 @@ import { Camera, ImagePlus, X } from "lucide-react"
 import { useToast } from "@/app/components/ToastProvider"
 import styles from "./AddActiviteModal.module.css"
 
-type AddActiviteModalProps = {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (payload: { nom: string; image?: File }) => void | Promise<void>
-  isSubmitting?: boolean
-  errorMessage?: string
-  title?: string
-  submitLabel?: string
-  submittingLabel?: string
-  successTitle?: string
-  successDescription?: (nom: string) => string
+type ActiviteOption = {
+  id: string
+  titre: string
 }
 
-export function AddActiviteModal({
+type UploadActiviteImageModalProps = {
+  isOpen: boolean
+  onClose: () => void
+  activites: ActiviteOption[]
+  onSubmit: (payload: { id: string; image: File }) => void | Promise<void>
+  isSubmitting?: boolean
+  errorMessage?: string
+}
+
+export function UploadActiviteImageModal({
   isOpen,
   onClose,
+  activites,
   onSubmit,
   isSubmitting = false,
   errorMessage,
-  title = "Ajouter une activité",
-  submitLabel = "Ajouter",
-  submittingLabel = "Ajout...",
-  successTitle = "Activite ajoutee",
-  successDescription = (nom) => `L'activite "${nom}" a ete enregistree avec succes.`,
-}: AddActiviteModalProps) {
+}: UploadActiviteImageModalProps) {
   const toast = useToast()
   const [isMobile, setIsMobile] = useState(false)
-  const [titre, setTitre] = useState("")
+  const [activiteId, setActiviteId] = useState("")
   const [imageFile, setImageFile] = useState<File | undefined>(undefined)
   const [isDropActive, setIsDropActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -45,47 +42,24 @@ export function AddActiviteModal({
 
   useEffect(() => {
     if (!isOpen) return
+    setActiviteId((prev) => prev || activites[0]?.id || "")
+  }, [isOpen, activites])
+
+  useEffect(() => {
+    if (!isOpen) return
 
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        onClose()
+        handleClose()
       }
     }
 
     window.addEventListener("keydown", handleEscape)
     return () => window.removeEventListener("keydown", handleEscape)
-  }, [isOpen, onClose])
+  }, [isOpen])
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const nom = titre.trim()
-    if (!nom) {
-      toast.warning({
-        title: "Nom obligatoire",
-        description: "Veuillez renseigner le nom de l'activite avant de valider.",
-      })
-      return
-    }
-    try {
-      await onSubmit({ nom, image: imageFile })
-      setTitre("")
-      setImageFile(undefined)
-      if (fileInputRef.current) fileInputRef.current.value = ""
-      toast.success({
-        title: successTitle,
-        description: successDescription(nom),
-      })
-    } catch {
-      // L'erreur est affichée depuis la prop errorMessage gérée par le parent.
-      toast.error({
-        title: "Echec de l'ajout",
-        description: "Une erreur est survenue pendant l'enregistrement de l'activite.",
-      })
-    }
-  }
-
-  const canSubmit = useMemo(() => titre.trim().length > 0 && !isSubmitting, [titre, isSubmitting])
   const previewUrl = useMemo(() => (imageFile ? URL.createObjectURL(imageFile) : ""), [imageFile])
+  const canSubmit = Boolean(activiteId) && Boolean(imageFile) && !isSubmitting
 
   useEffect(() => {
     return () => {
@@ -94,7 +68,6 @@ export function AddActiviteModal({
   }, [previewUrl])
 
   function handleClose() {
-    setTitre("")
     setImageFile(undefined)
     setIsDropActive(false)
     if (fileInputRef.current) fileInputRef.current.value = ""
@@ -123,29 +96,67 @@ export function AddActiviteModal({
     handleFileSelection(file)
   }
 
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!activiteId) {
+      toast.warning({
+        title: "Activite requise",
+        description: "Choisissez une activite avant de continuer.",
+      })
+      return
+    }
+    if (!imageFile) {
+      toast.warning({
+        title: "Image requise",
+        description: "Ajoutez une image avant de continuer.",
+      })
+      return
+    }
+    try {
+      await onSubmit({ id: activiteId, image: imageFile })
+      const activite = activites.find((item) => item.id === activiteId)
+      toast.success({
+        title: "Image mise a jour",
+        description: `L'image de "${activite?.titre ?? "l'activite"}" a ete enregistree.`,
+      })
+      handleClose()
+    } catch {
+      toast.error({
+        title: "Echec de l'upload",
+        description: "Une erreur est survenue pendant l'envoi de l'image.",
+      })
+    }
+  }
+
   if (!isOpen) return null
 
   const content = (
     <>
       {isMobile ? <div className={styles.drawerHandle} aria-hidden /> : null}
-      <h2 id="add-activite-title" className={styles.title}>
-        {title}
+      <h2 id="upload-activite-image-title" className={styles.title}>
+        Uploader une image
       </h2>
       <form className={styles.form} onSubmit={handleSubmit}>
         <label className={styles.label}>
-          Nom de l'activité
-          <input
+          Activite
+          <select
             className={styles.input}
-            type="text"
-            value={titre}
-            onChange={(event) => setTitre(event.target.value)}
-            placeholder="Ex: Randonnée guidée"
-            autoFocus
+            value={activiteId}
+            onChange={(event) => setActiviteId(event.target.value)}
+            disabled={isSubmitting || activites.length === 0}
             required
-          />
+          >
+            {activites.length === 0 ? <option value="">Aucune activite disponible</option> : null}
+            {activites.map((activite) => (
+              <option key={activite.id} value={activite.id}>
+                {activite.titre}
+              </option>
+            ))}
+          </select>
         </label>
+
         <div className={styles.label}>
-          Image (optionnel)
+          Image
           <input
             ref={fileInputRef}
             className={styles.fileInput}
@@ -180,7 +191,7 @@ export function AddActiviteModal({
             </button>
             {imageFile ? (
               <div className={styles.previewCard}>
-                <img src={previewUrl} alt="Aperçu de l'image" className={styles.previewImage} />
+                <img src={previewUrl} alt="Apercu de l'image" className={styles.previewImage} />
                 <div className={styles.previewMeta}>
                   <span className={styles.previewName}>{imageFile.name}</span>
                   <span className={styles.previewSize}>{Math.max(1, Math.round(imageFile.size / 1024))} Ko</span>
@@ -202,21 +213,13 @@ export function AddActiviteModal({
             </button>
           ) : null}
         </div>
+
         {errorMessage ? <p className={styles.errorMessage}>{errorMessage}</p> : null}
         <div className={styles.actions}>
-          <button
-            type="submit"
-            className={styles.submitButton}
-            disabled={!canSubmit}
-          >
-            {isSubmitting ? submittingLabel : submitLabel}
+          <button type="submit" className={styles.submitButton} disabled={!canSubmit}>
+            {isSubmitting ? "Upload..." : "Uploader"}
           </button>
-          <button
-            type="button"
-            className={styles.cancelButton}
-            onClick={handleClose}
-            disabled={isSubmitting}
-          >
+          <button type="button" className={styles.cancelButton} onClick={handleClose} disabled={isSubmitting}>
             Annuler
           </button>
         </div>
@@ -231,7 +234,7 @@ export function AddActiviteModal({
           className={styles.mobileDrawer}
           role="dialog"
           aria-modal="true"
-          aria-labelledby="add-activite-title"
+          aria-labelledby="upload-activite-image-title"
           onClick={(event) => event.stopPropagation()}
         >
           {content}
@@ -241,16 +244,12 @@ export function AddActiviteModal({
   }
 
   return (
-    <div
-      className={styles.overlay}
-      role="presentation"
-      onClick={handleClose}
-    >
+    <div className={styles.overlay} role="presentation" onClick={handleClose}>
       <div
         className={styles.modal}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="add-activite-title"
+        aria-labelledby="upload-activite-image-title"
         onClick={(event) => event.stopPropagation()}
       >
         {content}
