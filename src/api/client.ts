@@ -72,7 +72,7 @@ async function parseResponseBody(response: Response): Promise<unknown> {
   return text || null
 }
 
-type ApiRequestConfig = Omit<RequestInit, "method"> & {
+type ApiRequestConfig = Omit<RequestInit, "method" | "body"> & {
   method?: ApiMethod
   withAuth?: boolean
   timeoutMs?: number
