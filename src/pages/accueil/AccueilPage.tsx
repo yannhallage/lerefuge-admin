@@ -67,7 +67,7 @@ function getSelectionId(img: AccueilLibraryImage): string {
   return img.deleteId ?? img.id
 }
 
-const FILTRES_PRINCIPAUX = ["Dossiers", "Étiquettes", "Formats", "Date de création", "Types de médias"] as const
+const FILTRES_PRINCIPAUX = ["Dossiers", "Étiquettes", "Formats"] as const
 
 export function AccueilPage() {
   const searchId = useId()

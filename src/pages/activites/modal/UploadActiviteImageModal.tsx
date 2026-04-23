@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent, type FormEvent } from "react"
 import { Camera, ImagePlus, X } from "lucide-react"
 import { useToast } from "@/app/components/ToastProvider"
+import { DrawerMobile } from "../components/DrawerMobile"
 import styles from "./AddActiviteModal.module.css"
 
 type ActiviteOption = {
@@ -33,7 +34,7 @@ export function UploadActiviteImageModal({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const media = window.matchMedia("(max-width: 640px)")
+    const media = window.matchMedia("(max-width: 768px)")
     const update = () => setIsMobile(media.matches)
     update()
     media.addEventListener("change", update)
@@ -96,8 +97,7 @@ export function UploadActiviteImageModal({
     handleFileSelection(file)
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function submitUpload() {
     if (!activiteId) {
       toast.warning({
         title: "Activite requise",
@@ -128,7 +128,10 @@ export function UploadActiviteImageModal({
     }
   }
 
-  if (!isOpen) return null
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    await submitUpload()
+  }
 
   const content = (
     <>
@@ -229,19 +232,57 @@ export function UploadActiviteImageModal({
 
   if (isMobile) {
     return (
-      <div className={styles.mobileOverlay} role="presentation" onClick={handleClose}>
-        <div
-          className={styles.mobileDrawer}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="upload-activite-image-title"
-          onClick={(event) => event.stopPropagation()}
-        >
-          {content}
-        </div>
-      </div>
+      <>
+        <input
+          ref={fileInputRef}
+          className={styles.fileInput}
+          type="file"
+          accept="image/*"
+          onChange={(event) => handleFileSelection(event.target.files?.[0])}
+        />
+        <DrawerMobile
+          isOpen={isOpen}
+          isSubmitting={isSubmitting}
+          canSubmit={canSubmit}
+          fieldKind="select"
+          fieldLabel="Activite"
+          fieldValue={activiteId}
+          fieldOptions={
+            activites.length > 0
+              ? activites.map((activite) => ({ value: activite.id, label: activite.titre }))
+              : [{ value: "", label: "Aucune activite disponible" }]
+          }
+          fieldDisabled={isSubmitting || activites.length === 0}
+          title="Ajouter une image"
+          description="Choisissez l'activite puis ajoutez son image."
+          trustText="L'image est utilisee uniquement pour mettre a jour votre activite."
+          idleTitle="Ajoutez une image pour cette activite"
+          idleSub="PNG, JPG ou WEBP - 1 image requise"
+          submitLabel="Valider l'image"
+          submittingLabel="Validation en cours..."
+          disabledReason={!activiteId ? "Choisissez une activite pour continuer." : "Ajoutez une image pour continuer."}
+          imageFile={imageFile}
+          isDropActive={isDropActive}
+          onClose={handleClose}
+          onFieldChange={setActiviteId}
+          onFilePick={() => fileInputRef.current?.click()}
+          onFileRemove={() => {
+            setImageFile(undefined)
+            if (fileInputRef.current) fileInputRef.current.value = ""
+          }}
+          onSubmit={() => {
+            void submitUpload()
+          }}
+          onDropAreaDragOver={handleDropAreaDragOver}
+          onDropAreaDragEnter={handleDropAreaDragOver}
+          onDropAreaDragLeave={handleDropAreaDragLeave}
+          onDropAreaDrop={handleDropAreaDrop}
+        />
+      </>
     )
   }
+
+  if (!isOpen) return null
 
   return (
     <div className={styles.overlay} role="presentation" onClick={handleClose}>
