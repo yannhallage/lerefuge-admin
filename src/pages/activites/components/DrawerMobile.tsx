@@ -68,6 +68,7 @@ export function DrawerMobile({
   const [shouldRender, setShouldRender] = useState(isOpen)
   const [isClosing, setIsClosing] = useState(false)
   const previewUrl = useMemo(() => (imageFile ? URL.createObjectURL(imageFile) : ""), [imageFile])
+  const hasTitle = title.trim().length > 0
 
   useEffect(() => {
     return () => {
@@ -107,7 +108,8 @@ export function DrawerMobile({
         className={`${styles.drawer} ${isClosing ? styles.drawerClosing : ""}`}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="mobile-upload-title"
+        aria-labelledby={hasTitle ? "mobile-upload-title" : undefined}
+        aria-label={hasTitle ? undefined : "Upload mobile"}
         onClick={(event) => event.stopPropagation()}
       >
         <div className={styles.content}>
@@ -115,13 +117,15 @@ export function DrawerMobile({
             <X size={18} aria-hidden />
           </button>
 
-          <h2 id="mobile-upload-title" className={styles.title}>
-            {title}
-          </h2>
+          {hasTitle ? (
+            <h2 id="mobile-upload-title" className={styles.title}>
+              {title}
+            </h2>
+          ) : null}
           <p className={styles.subtitle}>{description}</p>
           <p className={styles.trustText}>{trustText}</p>
 
-          <label className={styles.label}>
+          {/* <label className={styles.label}>
             {fieldLabel}
             {fieldKind === "select" ? (
               <select
@@ -148,7 +152,7 @@ export function DrawerMobile({
                 required
               />
             )}
-          </label>
+          </label> */}
 
           <div
             className={`${styles.dropZone} ${isDropActive ? styles.dropZoneActive : ""}`}

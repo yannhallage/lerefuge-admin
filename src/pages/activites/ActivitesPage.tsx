@@ -17,7 +17,9 @@ export function ActivitesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [submitError, setSubmitError] = useState("")
-  const { data: activitesData = [], isError: isActivitesListError } = useActivitesList()
+  const [deletingActiviteId, setDeletingActiviteId] = useState<string | null>(null)
+  const [hiddenActiviteIds, setHiddenActiviteIds] = useState<string[]>([])
+  const { data: activitesData = [], isError: isActivitesListError, refetch: refetchActivites } = useActivitesList()
   const createActivite = useCreateActivite()
   const deleteActivite = useDeleteActivite()
 
@@ -28,13 +30,13 @@ export function ActivitesPage() {
     }
     if (hasShownListErrorToastRef.current) return
     hasShownListErrorToastRef.current = true
-    toast.error({
-      title: "Chargement impossible",
-      description: "La liste des activites n'a pas pu etre recuperee. Reessayez dans un instant.",
-    })
+    // toast.error({
+    //   title: "Chargement impossible",
+    //   description: "La liste des activites n'a pas pu etre recuperee. Reessayez dans un instant.",
+    // })
   }, [isActivitesListError, toast])
 
-  async function handleAjouterActivite(payload: { nom: string; image?: File }) {
+  async function handleAjouterActivite(payload: { nom: string }) {
     try {
       setSubmitError("")
       await createActivite.mutateAsync(payload)
@@ -46,23 +48,32 @@ export function ActivitesPage() {
   }
 
   async function handleSupprimerActivite(id: string) {
+    if (deleteActivite.isPending) return
     try {
+      setDeletingActiviteId(id)
       await deleteActivite.mutateAsync(id)
+      setHiddenActiviteIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
       toast.success({
         title: "Activite supprimee",
         description: "L'activite a ete supprimee avec succes.",
       })
+      await refetchActivites()
     } catch {
       toast.error({
         title: "Suppression impossible",
         description: "Une erreur est survenue pendant la suppression de l'activite.",
       })
+    } finally {
+      setDeletingActiviteId(null)
     }
   }
 
   const activites = useMemo(
-    () => activitesData.map((item) => ({ id: item.activite_id, titre: item.nom })),
-    [activitesData],
+    () =>
+      activitesData
+        .filter((item) => !hiddenActiviteIds.includes(item.activite_id))
+        .map((item) => ({ id: item.activite_id, titre: item.nom })),
+    [activitesData, hiddenActiviteIds],
   )
 
   const activitesFiltrees = useMemo(() => {
@@ -145,7 +156,7 @@ export function ActivitesPage() {
             }}
           >
             <Plus size={15} aria-hidden />
-            <span>Ajouter une activité</span>
+            <span>Creer une activite</span>
           </button>
         </div>
       </div>
@@ -171,6 +182,8 @@ export function ActivitesPage() {
       <ActivitesTableSection
         activites={activitesFiltrees}
         onRemoveActivite={handleSupprimerActivite}
+        isDeleting={deleteActivite.isPending}
+        deletingActiviteId={deletingActiviteId}
         query={query}
         onResetSearch={() => setQuery("")}
       />
@@ -182,7 +195,7 @@ export function ActivitesPage() {
           setSubmitError("")
           setIsModalOpen(true)
         }}
-        aria-label="Ajouter une activité"
+        aria-label="Creer une activite"
       >
         <Plus size={20} aria-hidden />
       </button>

@@ -1,4 +1,5 @@
 import { CalendarCheck2, Trash2 } from "lucide-react"
+import { BeatLoader } from "react-spinners"
 import styles from "../ActivitesPage.module.css"
 
 type ActiviteItem = {
@@ -9,11 +10,20 @@ type ActiviteItem = {
 type ActivitesTableSectionProps = {
   activites: ActiviteItem[]
   onRemoveActivite: (id: string) => void
+  isDeleting?: boolean
+  deletingActiviteId?: string | null
   query: string
   onResetSearch: () => void
 }
 
-export function ActivitesTableSection({ activites, onRemoveActivite, query, onResetSearch }: ActivitesTableSectionProps) {
+export function ActivitesTableSection({
+  activites,
+  onRemoveActivite,
+  isDeleting = false,
+  deletingActiviteId = null,
+  query,
+  onResetSearch,
+}: ActivitesTableSectionProps) {
   const rechercheActive = query.trim().length > 0
   return (
     <section className={styles.listSection} aria-label="Liste des activités">
@@ -52,9 +62,16 @@ export function ActivitesTableSection({ activites, onRemoveActivite, query, onRe
                       className={`${styles.iconButton} ${styles.iconButtonDanger}`}
                       onClick={() => onRemoveActivite(activite.id)}
                       aria-label={`Supprimer ${activite.titre}`}
+                      disabled={isDeleting}
                     >
-                      <Trash2 size={14} aria-hidden />
-                      <span>Supprimer</span>
+                      {isDeleting && deletingActiviteId === activite.id ? (
+                        <BeatLoader size={6} color="currentColor" aria-hidden />
+                      ) : (
+                        <>
+                          <Trash2 size={14} aria-hidden />
+                          <span>Supprimer</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>

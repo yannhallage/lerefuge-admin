@@ -17,12 +17,23 @@ export type ActiviteItem = {
   admin?: ActiviteAdmin | null
 }
 
+export type ActiviteImageItem = {
+  activite_image_id?: string
+  activite_id?: string
+  nom?: string
+  titre?: string
+  image: string
+}
+
 export type CreateActiviteInput = {
   nom: string
-  image?: File
 }
 
 export type UpdateActiviteInput = {
   nom?: string
   image?: File
+}
+
+export type CreateActiviteImageInput = {
+  image: File
 }

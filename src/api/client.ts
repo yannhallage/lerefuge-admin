@@ -1,6 +1,14 @@
 import { ApiError, type ApiErrorPayload, type ApiMethod } from "@/api/types"
 import { requestInterceptors, responseInterceptors } from "@/api/interceptors"
-import { getAccessToken } from "@/shared/utils/storage"
+import { API_ENDPOINTS } from "@/api/endpoints"
+import {
+  clearAuthTokens,
+  getAccessToken,
+  getRefreshToken,
+  notifyAuthLogout,
+  setAccessToken,
+  setRefreshToken,
+} from "@/shared/utils/storage"
 
 const rawBase = (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? ""
 const DEFAULT_TIMEOUT_MS = 15_000
@@ -72,6 +80,48 @@ type ApiRequestConfig = Omit<RequestInit, "method"> & {
   body?: PrimitiveBody | FormData | string
 }
 
+type RefreshResponsePayload = {
+  success?: boolean
+  data?: {
+    accessToken?: string
+    refreshToken?: string
+  } | null
+}
+
+type RetryableRequestInit = RequestInit & { _retry?: boolean }
+
+async function tryRefreshAccessToken(timeoutMs: number): Promise<boolean> {
+  const refreshToken = getRefreshToken()
+  if (!refreshToken) return false
+
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const response = await fetch(buildUrl(API_ENDPOINTS.auth.refresh), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+      signal: controller.signal,
+    })
+
+    if (!response.ok) return false
+    const payload = (await parseResponseBody(response)) as RefreshResponsePayload | null
+    const nextAccessToken = payload?.data?.accessToken
+    const nextRefreshToken = payload?.data?.refreshToken
+    if (!payload?.success || !nextAccessToken || !nextRefreshToken) {
+      return false
+    }
+
+    setAccessToken(nextAccessToken)
+    setRefreshToken(nextRefreshToken)
+    return true
+  } catch {
+    return false
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
+}
+
 export async function apiClient<T>(
   path: string,
   {
@@ -97,7 +147,7 @@ export async function apiClient<T>(
     ...(headers ?? {}),
   }
 
-  let request: RequestInit = {
+  let request: RetryableRequestInit = {
     method,
     headers: computedHeaders,
     body: parsedBody,
@@ -127,6 +177,30 @@ export async function apiClient<T>(
     let response = await fetch(buildUrl(reqData.path, query), reqData.init)
     for (const interceptor of responseInterceptors) {
       response = await interceptor(response)
+    }
+
+    const currentRequest = reqData.init as RetryableRequestInit
+    if (withAuth && response.status === 401 && !currentRequest._retry) {
+      const refreshed = await tryRefreshAccessToken(timeoutMs)
+      if (!refreshed) {
+        clearAuthTokens()
+        notifyAuthLogout()
+        throw new ApiError("Votre session a expire. Veuillez vous reconnecter.", 401)
+      }
+
+      const renewedToken = getAccessToken()
+      const retryRequest: RetryableRequestInit = {
+        ...currentRequest,
+        _retry: true,
+        headers: {
+          ...(currentRequest.headers ?? {}),
+          ...(renewedToken ? { Authorization: `Bearer ${renewedToken}` } : {}),
+        },
+      }
+      response = await fetch(buildUrl(reqData.path, query), retryRequest)
+      for (const interceptor of responseInterceptors) {
+        response = await interceptor(response)
+      }
     }
 
     const data = (await parseResponseBody(response)) as ApiErrorPayload | null

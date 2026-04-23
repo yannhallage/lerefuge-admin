@@ -3,6 +3,7 @@ import { AuthContext } from "@/shared/context/auth-context"
 import { authApi } from "@/features/auth/api/auth.api"
 import type { LoginInput } from "@/features/auth/api/auth.types"
 import {
+  AUTH_LOGOUT_EVENT,
   clearAuthTokens,
   getAccessToken,
   getRefreshToken,
@@ -52,6 +53,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       void tryRefresh()
     }
   }, [tryRefresh])
+
+  useEffect(() => {
+    function handleAuthLogout() {
+      logout()
+    }
+
+    window.addEventListener(AUTH_LOGOUT_EVENT, handleAuthLogout)
+    return () => {
+      window.removeEventListener(AUTH_LOGOUT_EVENT, handleAuthLogout)
+    }
+  }, [logout])
 
   const value = useMemo(
     () => ({ isAuthenticated, login, logout }),

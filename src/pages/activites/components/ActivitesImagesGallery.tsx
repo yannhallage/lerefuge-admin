@@ -1,4 +1,5 @@
 import { Trash2 } from "lucide-react"
+import { BeatLoader } from "react-spinners"
 import styles from "./ActivitesImagesGallery.module.css"
 
 type ActiviteItem = {
@@ -9,11 +10,17 @@ type ActiviteItem = {
 
 type ActivitesImagesGalleryProps = {
   activites: ActiviteItem[]
-  onDeleteImage: (activite: ActiviteItem) => void
+  onDeleteImage?: (activite: ActiviteItem) => void
   isDeleting?: boolean
+  deletingActiviteId?: string | null
 }
 
-export function ActivitesImagesGallery({ activites, onDeleteImage, isDeleting = false }: ActivitesImagesGalleryProps) {
+export function ActivitesImagesGallery({
+  activites,
+  onDeleteImage,
+  isDeleting = false,
+  deletingActiviteId = null,
+}: ActivitesImagesGalleryProps) {
   if (activites.length === 0) {
     return <p className={styles.empty}>Aucune image à afficher pour cette recherche.</p>
   }
@@ -30,16 +37,22 @@ export function ActivitesImagesGallery({ activites, onDeleteImage, isDeleting = 
                 alt={`Illustration de ${activite.titre}`}
                 loading="lazy"
               />
-              <button
-                type="button"
-                className={styles.deleteButton}
-                aria-label={`Supprimer l'image de ${activite.titre}`}
-                onClick={() => onDeleteImage(activite)}
-                disabled={isDeleting}
-                title="Supprimer"
-              >
-                <Trash2 size={14} aria-hidden />
-              </button>
+              {onDeleteImage ? (
+                <button
+                  type="button"
+                  className={styles.deleteButton}
+                  aria-label={`Supprimer l'image de ${activite.titre}`}
+                  onClick={() => onDeleteImage(activite)}
+                  disabled={isDeleting}
+                  title="Supprimer"
+                >
+                  {isDeleting && deletingActiviteId === activite.id ? (
+                    <BeatLoader size={6} color="#fff" aria-hidden />
+                  ) : (
+                    <Trash2 size={14} aria-hidden />
+                  )}
+                </button>
+              ) : null}
             </div>
             <p className={styles.title}>{activite.titre}</p>
           </li>

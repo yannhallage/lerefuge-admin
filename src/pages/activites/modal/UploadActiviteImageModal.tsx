@@ -4,16 +4,10 @@ import { useToast } from "@/app/components/ToastProvider"
 import { DrawerMobile } from "../components/DrawerMobile"
 import styles from "./AddActiviteModal.module.css"
 
-type ActiviteOption = {
-  id: string
-  titre: string
-}
-
 type UploadActiviteImageModalProps = {
   isOpen: boolean
   onClose: () => void
-  activites: ActiviteOption[]
-  onSubmit: (payload: { id: string; image: File }) => void | Promise<void>
+  onSubmit: (payload: { image: File }) => void | Promise<void>
   isSubmitting?: boolean
   errorMessage?: string
 }
@@ -21,14 +15,12 @@ type UploadActiviteImageModalProps = {
 export function UploadActiviteImageModal({
   isOpen,
   onClose,
-  activites,
   onSubmit,
   isSubmitting = false,
   errorMessage,
 }: UploadActiviteImageModalProps) {
   const toast = useToast()
   const [isMobile, setIsMobile] = useState(false)
-  const [activiteId, setActiviteId] = useState("")
   const [imageFile, setImageFile] = useState<File | undefined>(undefined)
   const [isDropActive, setIsDropActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -40,11 +32,6 @@ export function UploadActiviteImageModal({
     media.addEventListener("change", update)
     return () => media.removeEventListener("change", update)
   }, [])
-
-  useEffect(() => {
-    if (!isOpen) return
-    setActiviteId((prev) => prev || activites[0]?.id || "")
-  }, [isOpen, activites])
 
   useEffect(() => {
     if (!isOpen) return
@@ -60,7 +47,7 @@ export function UploadActiviteImageModal({
   }, [isOpen])
 
   const previewUrl = useMemo(() => (imageFile ? URL.createObjectURL(imageFile) : ""), [imageFile])
-  const canSubmit = Boolean(activiteId) && Boolean(imageFile) && !isSubmitting
+  const canSubmit = Boolean(imageFile) && !isSubmitting
 
   useEffect(() => {
     return () => {
@@ -98,13 +85,6 @@ export function UploadActiviteImageModal({
   }
 
   async function submitUpload() {
-    if (!activiteId) {
-      toast.warning({
-        title: "Activite requise",
-        description: "Choisissez une activite avant de continuer.",
-      })
-      return
-    }
     if (!imageFile) {
       toast.warning({
         title: "Image requise",
@@ -113,18 +93,14 @@ export function UploadActiviteImageModal({
       return
     }
     try {
-      await onSubmit({ id: activiteId, image: imageFile })
-      const activite = activites.find((item) => item.id === activiteId)
+      await onSubmit({ image: imageFile })
       toast.success({
-        title: "Image mise a jour",
-        description: `L'image de "${activite?.titre ?? "l'activite"}" a ete enregistree.`,
+        title: "Image envoyee",
+        description: "L'image d'activite a ete enregistree.",
       })
       handleClose()
     } catch {
-      toast.error({
-        title: "Echec de l'upload",
-        description: "Une erreur est survenue pendant l'envoi de l'image.",
-      })
+      // L'erreur est affichée via errorMessage depuis le parent.
     }
   }
 
@@ -137,27 +113,9 @@ export function UploadActiviteImageModal({
     <>
       {isMobile ? <div className={styles.drawerHandle} aria-hidden /> : null}
       <h2 id="upload-activite-image-title" className={styles.title}>
-        Uploader une image
+        Ajouter une image d'activite
       </h2>
       <form className={styles.form} onSubmit={handleSubmit}>
-        <label className={styles.label}>
-          Activite
-          <select
-            className={styles.input}
-            value={activiteId}
-            onChange={(event) => setActiviteId(event.target.value)}
-            disabled={isSubmitting || activites.length === 0}
-            required
-          >
-            {activites.length === 0 ? <option value="">Aucune activite disponible</option> : null}
-            {activites.map((activite) => (
-              <option key={activite.id} value={activite.id}>
-                {activite.titre}
-              </option>
-            ))}
-          </select>
-        </label>
-
         <div className={styles.label}>
           Image
           <input
@@ -244,27 +202,21 @@ export function UploadActiviteImageModal({
           isOpen={isOpen}
           isSubmitting={isSubmitting}
           canSubmit={canSubmit}
-          fieldKind="select"
-          fieldLabel="Activite"
-          fieldValue={activiteId}
-          fieldOptions={
-            activites.length > 0
-              ? activites.map((activite) => ({ value: activite.id, label: activite.titre }))
-              : [{ value: "", label: "Aucune activite disponible" }]
-          }
-          fieldDisabled={isSubmitting || activites.length === 0}
-          title="Ajouter une image"
-          description="Choisissez l'activite puis ajoutez son image."
-          trustText="L'image est utilisee uniquement pour mettre a jour votre activite."
-          idleTitle="Ajoutez une image pour cette activite"
+          fieldLabel="Image"
+          fieldValue="Image d'activite"
+          fieldDisabled
+          title=""
+          description="Ajoutez l'image de votre activite."
+          trustText="L'image est utilisee uniquement pour la galerie des activites."
+          idleTitle="Ajoutez une image d'activite"
           idleSub="PNG, JPG ou WEBP - 1 image requise"
-          submitLabel="Valider l'image"
-          submittingLabel="Validation en cours..."
-          disabledReason={!activiteId ? "Choisissez une activite pour continuer." : "Ajoutez une image pour continuer."}
+          submitLabel="Uploader l'image"
+          submittingLabel="Upload en cours..."
+          disabledReason="Ajoutez une image pour continuer."
           imageFile={imageFile}
           isDropActive={isDropActive}
           onClose={handleClose}
-          onFieldChange={setActiviteId}
+          onFieldChange={() => {}}
           onFilePick={() => fileInputRef.current?.click()}
           onFileRemove={() => {
             setImageFile(undefined)

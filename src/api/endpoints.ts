@@ -22,6 +22,9 @@ export const API_ENDPOINTS = {
   activites: {
     list: "/activites",
     create: "/activites",
+    imagesList: "/activites/images",
+    imagesCreate: "/activites/images",
+    imagesDelete: (id: string) => `/activites/images/${id}`,
     byId: (id: string) => `/activites/${id}`,
     update: (id: string) => `/activites/${id}`,
     delete: (id: string) => `/activites/${id}`,
