@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent, type FormEvent } from "react"
 import { Camera, ImagePlus, X } from "lucide-react"
 import { useToast } from "@/app/components/ToastProvider"
+import { DrawerMobile } from "../components/DrawerMobile"
 import styles from "./AddActiviteModal.module.css"
 
 type AddActiviteModalProps = {
@@ -36,7 +37,7 @@ export function AddActiviteModal({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const media = window.matchMedia("(max-width: 640px)")
+    const media = window.matchMedia("(max-width: 768px)")
     const update = () => setIsMobile(media.matches)
     update()
     media.addEventListener("change", update)
@@ -56,8 +57,7 @@ export function AddActiviteModal({
     return () => window.removeEventListener("keydown", handleEscape)
   }, [isOpen, onClose])
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function submitForm() {
     const nom = titre.trim()
     if (!nom) {
       toast.warning({
@@ -82,6 +82,11 @@ export function AddActiviteModal({
         description: "Une erreur est survenue pendant l'enregistrement de l'activite.",
       })
     }
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    await submitForm()
   }
 
   const canSubmit = useMemo(() => titre.trim().length > 0 && !isSubmitting, [titre, isSubmitting])
@@ -122,8 +127,6 @@ export function AddActiviteModal({
     const file = event.dataTransfer.files?.[0]
     handleFileSelection(file)
   }
-
-  if (!isOpen) return null
 
   const content = (
     <>
@@ -226,19 +229,41 @@ export function AddActiviteModal({
 
   if (isMobile) {
     return (
-      <div className={styles.mobileOverlay} role="presentation" onClick={handleClose}>
-        <div
-          className={styles.mobileDrawer}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="add-activite-title"
-          onClick={(event) => event.stopPropagation()}
-        >
-          {content}
-        </div>
-      </div>
+      <>
+        <input
+          ref={fileInputRef}
+          className={styles.fileInput}
+          type="file"
+          accept="image/*"
+          onChange={(event) => handleFileSelection(event.target.files?.[0])}
+        />
+        <DrawerMobile
+          isOpen={isOpen}
+          isSubmitting={isSubmitting}
+          canSubmit={canSubmit}
+          fieldValue={titre}
+          imageFile={imageFile}
+          isDropActive={isDropActive}
+          onClose={handleClose}
+          onFieldChange={setTitre}
+          onFilePick={() => fileInputRef.current?.click()}
+          onFileRemove={() => {
+            setImageFile(undefined)
+            if (fileInputRef.current) fileInputRef.current.value = ""
+          }}
+          onSubmit={() => {
+            if (canSubmit) void submitForm()
+          }}
+          onDropAreaDragOver={handleDropAreaDragOver}
+          onDropAreaDragEnter={handleDropAreaDragOver}
+          onDropAreaDragLeave={handleDropAreaDragLeave}
+          onDropAreaDrop={handleDropAreaDrop}
+        />
+      </>
     )
   }
+
+  if (!isOpen) return null
 
   return (
     <div
