@@ -69,6 +69,14 @@ export function DrawerMobile({
   const [isClosing, setIsClosing] = useState(false)
   const previewUrl = useMemo(() => (imageFile ? URL.createObjectURL(imageFile) : ""), [imageFile])
   const hasTitle = title.trim().length > 0
+  // Ces props sont conservees pour compatibilite API, meme si le champ texte/select est temporairement masque.
+  void fieldValue
+  void onFieldChange
+  void fieldLabel
+  void fieldPlaceholder
+  void fieldKind
+  void fieldOptions
+  void fieldDisabled
 
   useEffect(() => {
     return () => {
