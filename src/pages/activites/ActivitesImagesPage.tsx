@@ -4,8 +4,8 @@ import { useNavigate } from "react-router-dom"
 import styles from "./ActivitesPage.module.css"
 import { ActivitesImagesGallery } from "./components/ActivitesImagesGallery"
 import { UploadActiviteImageModal } from "./modal/UploadActiviteImageModal"
-import { useActivitesList, useDeleteActivite, useUpdateActivite } from "@/features/activites/hooks/useActivites"
 import { useToast } from "@/app/components/ToastProvider"
+import { useActivitesImagesList, useCreateActiviteImage, useDeleteActiviteImage } from "@/features/activites/hooks/useActivites"
 
 export function ActivitesImagesPage() {
   const baseId = useId()
@@ -13,23 +13,24 @@ export function ActivitesImagesPage() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
   const toast = useToast()
-  const updateActivite = useUpdateActivite()
-  const deleteActivite = useDeleteActivite()
+  const createActiviteImage = useCreateActiviteImage()
+  const deleteActiviteImage = useDeleteActiviteImage()
   const [query, setQuery] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [submitError, setSubmitError] = useState("")
-  const { data: activitesData = [], isLoading, isError } = useActivitesList()
+  const [deletingImageId, setDeletingImageId] = useState<string | null>(null)
+  const { data: activitesImagesData = [], isLoading, isError } = useActivitesImagesList()
 
   const activitesAvecImage = useMemo(
     () =>
-      activitesData
+      activitesImagesData
         .filter((item) => typeof item.image === "string" && item.image.trim().length > 0)
-        .map((item) => ({
-          id: item.activite_id,
-          titre: item.nom,
-          image: item.image as string,
+        .map((item, index) => ({
+          id: item.activite_image_id ?? item.activite_id ?? `activite-image-${index}`,
+          titre: item.nom ?? item.titre ?? `Image activite ${index + 1}`,
+          image: item.image,
         })),
-    [activitesData],
+    [activitesImagesData],
   )
 
   const activitesFiltrees = useMemo(() => {
@@ -40,19 +41,10 @@ export function ActivitesImagesPage() {
   const totalListe = activitesAvecImage.length
   const totalFiltres = activitesFiltrees.length
   const rechercheActive = query.trim().length > 0
-  const activitesOptions = useMemo(
-    () =>
-      activitesData.map((item) => ({
-        id: item.activite_id,
-        titre: item.nom,
-      })),
-    [activitesData],
-  )
-
-  async function handleAjouterImage(payload: { id: string; image: File }) {
+  async function handleAjouterImage(payload: { image: File }) {
     try {
       setSubmitError("")
-      await updateActivite.mutateAsync({ id: payload.id, payload: { image: payload.image } })
+      await createActiviteImage.mutateAsync({ image: payload.image })
       setIsModalOpen(false)
     } catch {
       setSubmitError("Impossible d'uploader l'image pour le moment. Reessayez.")
@@ -61,19 +53,23 @@ export function ActivitesImagesPage() {
   }
 
   async function handleSupprimerImage(activite: { id: string; titre: string }) {
-    const confirmed = window.confirm(`Supprimer l'activite "${activite.titre}" ?`)
+    if (deleteActiviteImage.isPending) return
+    const confirmed = window.confirm(`Supprimer l'image "${activite.titre}" ?`)
     if (!confirmed) return
     try {
-      await deleteActivite.mutateAsync(activite.id)
+      setDeletingImageId(activite.id)
+      await deleteActiviteImage.mutateAsync(activite.id)
       toast.success({
         title: "Image supprimee",
-        description: `L'entree "${activite.titre}" a ete supprimee.`,
+        description: `L'image "${activite.titre}" a ete supprimee avec succes.`,
       })
     } catch {
       toast.error({
         title: "Suppression impossible",
-        description: "Une erreur est survenue pendant la suppression.",
+        description: "Une erreur est survenue pendant la suppression de l'image.",
       })
+    } finally {
+      setDeletingImageId(null)
     }
   }
 
@@ -174,7 +170,8 @@ export function ActivitesImagesPage() {
         <ActivitesImagesGallery
           activites={activitesFiltrees}
           onDeleteImage={handleSupprimerImage}
-          isDeleting={deleteActivite.isPending}
+          isDeleting={deleteActiviteImage.isPending}
+          deletingActiviteId={deletingImageId}
         />
       ) : null}
 
@@ -196,9 +193,8 @@ export function ActivitesImagesPage() {
           setSubmitError("")
           setIsModalOpen(false)
         }}
-        activites={activitesOptions}
         onSubmit={handleAjouterImage}
-        isSubmitting={updateActivite.isPending}
+        isSubmitting={createActiviteImage.isPending}
         errorMessage={submitError}
       />
     </section>

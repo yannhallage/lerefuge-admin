@@ -38,6 +38,7 @@
   font-size: var(--reservation-text-size);
   color: var(--admin-text);
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .breadcrumbMuted {
@@ -281,6 +282,8 @@
 .listTitle {
   font-size: var(--reservation-text-size);
   color: var(--admin-text);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .actionCell {
@@ -410,6 +413,7 @@
 
   .breadcrumbRow {
     margin-bottom: 10px;
+    align-items: flex-start;
   }
 
   .quickSearchBtn {
@@ -447,10 +451,14 @@
 
   .actions {
     width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
   .viewButton {
-    flex: 1;
+    width: 100%;
+    min-width: 0;
   }
 
   .addButton {
@@ -474,7 +482,7 @@
   .listHeader,
   .listRow {
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
+    align-items: flex-start;
   }
 
   .listHeaderActions {
@@ -488,6 +496,7 @@
 
   .actionButtons {
     justify-content: flex-end;
+    width: 100%;
   }
 
   .iconButton {
@@ -503,5 +512,19 @@
 
   .fabButton {
     display: inline-flex;
+  }
+}
+
+@media (max-width: 560px) {
+  .breadcrumb {
+    line-height: 1.4;
+  }
+
+  .listRow {
+    padding: 10px;
+  }
+
+  .listTitle {
+    line-height: 1.4;
   }
 }

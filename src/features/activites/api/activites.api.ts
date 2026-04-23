@@ -1,6 +1,12 @@
 import { apiClient } from "@/api/client"
 import { API_ENDPOINTS } from "@/api/endpoints"
-import type { CreateActiviteInput, ActiviteItem, UpdateActiviteInput } from "@/features/activites/api/activites.types"
+import type {
+  ActiviteImageItem,
+  CreateActiviteImageInput,
+  CreateActiviteInput,
+  ActiviteItem,
+  UpdateActiviteInput,
+} from "@/features/activites/api/activites.types"
 import { ApiError } from "@/api/types"
 
 type ApiEnvelope<T> = {
@@ -26,6 +32,11 @@ function unwrapList(payload: unknown): ActiviteItem[] {
   return Array.isArray(data) ? (data as ActiviteItem[]) : []
 }
 
+function unwrapImagesList(payload: unknown): ActiviteImageItem[] {
+  const data = unwrapPayload(payload)
+  return Array.isArray(data) ? (data as ActiviteImageItem[]) : []
+}
+
 function assertApiSuccess(payload: unknown) {
   if (!payload || typeof payload !== "object") return
   const envelope = payload as ApiEnvelope<unknown>
@@ -43,15 +54,32 @@ export const activitesApi = {
     assertApiSuccess(response)
     return unwrapList(response)
   },
-  create: async (input: CreateActiviteInput) => {
+  listImages: async () => {
+    const response = await apiClient<unknown>(API_ENDPOINTS.activites.imagesList, { withAuth: false })
+    assertApiSuccess(response)
+    return unwrapImagesList(response)
+  },
+  createImage: async (input: CreateActiviteImageInput) => {
     const formData = new FormData()
-    formData.append("nom", input.nom)
-    if (input.image) {
-      formData.append("image", input.image)
-    }
-    const response = await apiClient<unknown>(API_ENDPOINTS.activites.create, {
+    formData.append("image", input.image)
+    const response = await apiClient<unknown>(API_ENDPOINTS.activites.imagesCreate, {
       method: "POST",
       body: formData,
+    })
+    assertApiSuccess(response)
+    return response
+  },
+  removeImage: async (id: string) => {
+    const response = await apiClient<unknown>(API_ENDPOINTS.activites.imagesDelete(id), {
+      method: "DELETE",
+    })
+    assertApiSuccess(response)
+    return response
+  },
+  create: async (input: CreateActiviteInput) => {
+    const response = await apiClient<unknown>(API_ENDPOINTS.activites.create, {
+      method: "POST",
+      body: { nom: input.nom },
     })
     assertApiSuccess(response)
     return response

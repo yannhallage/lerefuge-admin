@@ -1,8 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { activitesApi } from "@/features/activites/api/activites.api"
-import type { CreateActiviteInput, UpdateActiviteInput } from "@/features/activites/api/activites.types"
+import type {
+  CreateActiviteImageInput,
+  CreateActiviteInput,
+  UpdateActiviteInput,
+} from "@/features/activites/api/activites.types"
 
 const ACTIVITES_QUERY_KEY = ["activites"] as const
+const ACTIVITES_IMAGES_QUERY_KEY = ["activites-images"] as const
 
 export function useActivitesList() {
   return useQuery({
@@ -17,6 +22,36 @@ export function useCreateActivite() {
     mutationFn: (payload: CreateActiviteInput) => activitesApi.create(payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ACTIVITES_QUERY_KEY })
+    },
+  })
+}
+
+export function useActivitesImagesList() {
+  return useQuery({
+    queryKey: ACTIVITES_IMAGES_QUERY_KEY,
+    queryFn: activitesApi.listImages,
+  })
+}
+
+export function useCreateActiviteImage() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateActiviteImageInput) => activitesApi.createImage(payload),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ACTIVITES_IMAGES_QUERY_KEY }),
+        queryClient.invalidateQueries({ queryKey: ACTIVITES_QUERY_KEY }),
+      ])
+    },
+  })
+}
+
+export function useDeleteActiviteImage() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => activitesApi.removeImage(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ACTIVITES_IMAGES_QUERY_KEY })
     },
   })
 }

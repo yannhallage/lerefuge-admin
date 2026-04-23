@@ -1,5 +1,6 @@
 const ACCESS_TOKEN_KEY = "lerefuge-admin-access-token"
 const REFRESH_TOKEN_KEY = "lerefuge-admin-refresh-token"
+export const AUTH_LOGOUT_EVENT = "auth:logout"
 
 export function getAccessToken(): string | null {
   return localStorage.getItem(ACCESS_TOKEN_KEY)
@@ -28,4 +29,9 @@ export function clearRefreshToken(): void {
 export function clearAuthTokens(): void {
   clearAccessToken()
   clearRefreshToken()
+}
+
+export function notifyAuthLogout(): void {
+  if (typeof window === "undefined") return
+  window.dispatchEvent(new Event(AUTH_LOGOUT_EVENT))
 }
