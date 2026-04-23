@@ -49,13 +49,12 @@ function assertApiSuccess(payload: unknown) {
 
 export const activitesApi = {
   list: async () => {
-    // L'endpoint activites est protege cote API: on conserve l'auth par defaut.
-    const response = await apiClient<unknown>(API_ENDPOINTS.activites.list, { withAuth: false })
+    const response = await apiClient<unknown>(API_ENDPOINTS.activites.list)
     assertApiSuccess(response)
     return unwrapList(response)
   },
   listImages: async () => {
-    const response = await apiClient<unknown>(API_ENDPOINTS.activites.imagesList, { withAuth: false })
+    const response = await apiClient<unknown>(API_ENDPOINTS.activites.imagesList)
     assertApiSuccess(response)
     return unwrapImagesList(response)
   },

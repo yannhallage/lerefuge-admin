@@ -20,7 +20,7 @@ function unwrapList(payload: unknown): RestaurationItem[] {
 
 export const restaurationApi = {
   list: async () => {
-    const response = await apiClient<unknown>(API_ENDPOINTS.restauration.list, { withAuth: false })
+    const response = await apiClient<unknown>(API_ENDPOINTS.restauration.list)
     return unwrapList(response)
   },
   create: (input: CreateRestaurationInput) => {

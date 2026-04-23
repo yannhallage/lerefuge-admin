@@ -14,9 +14,7 @@ function unwrapList(payload: unknown): GalerieItem[] {
 
 export const galerieApi = {
   list: async () => {
-    const response = await apiClient<unknown>(API_ENDPOINTS.galerie.list, {
-      withAuth: false,
-    })
+    const response = await apiClient<unknown>(API_ENDPOINTS.galerie.list)
     return unwrapList(response)
   },
   create: (input: CreateGalerieInput) => {
