@@ -5,7 +5,7 @@ import { useAuth } from "@/shared/context/useAuth"
 import { ApiError } from "@/api/types"
 import styles from "./LoginPage.module.css"
 
-const HERO_IMAGE = "https://lerefugedubandama.net/image3/DSC_2437.JPG"
+const HERO_IMAGE = "https://res.cloudinary.com/durcdpzsk/image/upload/v1776947534/le_refuge/aiglyye2m8jkgo7px98n.webp"
 const LOGO_SRC = "/logo-refuge-du-bandama.png"
 const LOGO_ALT = "Le Refuge du Bandama"
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
