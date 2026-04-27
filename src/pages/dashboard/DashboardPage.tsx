@@ -66,7 +66,7 @@ export function DashboardPage() {
         </p>
       </header>
 
-      <details className={styles.section} open>
+      {/* <details className={styles.section} open>
         <summary className={styles.sectionHeader}>
           <span className={styles.sectionTitle}>Site &amp; environnement</span>
           <ChevronDown className={styles.sectionChevron} size={18} strokeWidth={2} aria-hidden />
@@ -169,12 +169,12 @@ export function DashboardPage() {
             Aller aux modules de contenu
           </Link>
         </p>
-      </details>
+      </details> */}
 
-      <p className={styles.note}>
+      {/* <p className={styles.note}>
         <Sparkles size={16} strokeWidth={2} className={styles.noteIcon} aria-hidden />
         Prochaine étape : brancher chaque indicateur sur l’API du site vitrine pour des totaux en temps réel.
-      </p>
+      </p> */}
     </div>
   )
 }
