@@ -204,12 +204,25 @@ export async function apiClient<T>(
     }
 
     const data = (await parseResponseBody(response)) as ApiErrorPayload | null
+
+    if (withAuth && (response.status === 401 || response.status === 403)) {
+      clearAuthTokens()
+      notifyAuthLogout()
+      throw new ApiError(
+        data?.message ??
+          (response.status === 403
+            ? "Acces refuse. Veuillez vous reconnecter."
+            : "Votre session a expire. Veuillez vous reconnecter."),
+        response.status,
+        data ?? null,
+      )
+    }
+
     if (!response.ok) {
       throw new ApiError(
-        (data as ApiErrorPayload | null)?.message ??
-          "Une erreur est survenue lors de l'appel API.",
+        data?.message ?? "Une erreur est survenue lors de l'appel API.",
         response.status,
-        (data as ApiErrorPayload | null) ?? null,
+        data ?? null,
       )
     }
 
