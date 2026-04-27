@@ -14,7 +14,6 @@ import {
   LogOut,
   Menu,
   Mountain,
-  Newspaper,
   Settings,
   UtensilsCrossed,
 } from "lucide-react"

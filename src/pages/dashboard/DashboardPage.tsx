@@ -1,60 +1,6 @@
-import { useState } from "react"
-import { Link } from "react-router-dom"
-import {
-  BedDouble,
-  ChevronDown,
-  Copy,
-  HardDrive,
-  Image as ImageIcon,
-  Info,
-  Sparkles,
-  Star,
-  Tag,
-} from "lucide-react"
 import styles from "./DashboardPage.module.css"
 
-const SITE_ID = "lerefuge-bandama"
-
-const USAGE_FILTERS = ["7 derniers jours", "30 derniers jours", "3 derniers mois", "12 derniers mois"] as const
-
-const METRICS = [
-  {
-    label: "Articles blog",
-    value: "—",
-    hint: "Brouillon + publiés",
-    Icon: ImageIcon,
-  },
-  {
-    label: "Offres actives",
-    value: "—",
-    hint: "Période en cours",
-    Icon: Tag,
-  },
-  {
-    label: "Chambres listées",
-    value: "—",
-    hint: "Fiches logements",
-    Icon: BedDouble,
-  },
-  {
-    label: "Médias galerie",
-    value: "—",
-    hint: "Visibles sur le site",
-    Icon: HardDrive,
-  },
-] as const
-
 export function DashboardPage() {
-  const [usageFilter, setUsageFilter] = useState<(typeof USAGE_FILTERS)[number]>("30 derniers jours")
-
-  async function copySiteId() {
-    try {
-      await navigator.clipboard.writeText(SITE_ID)
-    } catch {
-      /* presse-papiers indisponible : ignoré */
-    }
-  }
-
   return (
     <div className={styles.page}>
       <header className={styles.hero}>
