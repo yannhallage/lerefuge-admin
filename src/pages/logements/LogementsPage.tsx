@@ -17,6 +17,7 @@ import {
   useLogementList,
 } from "@/features/logement/hooks/useLogement"
 import type { LogementItem } from "@/features/logement/api/logement.types"
+import { logementApi } from "@/features/logement/api/logement.api"
 import { useToast } from "@/app/components/ToastProvider"
 type LogementCard = {
   id: string
@@ -42,7 +43,7 @@ export function LogementsPage() {
         id: item.logement_id,
         nom: item.nom_logement,
         prix: item.prix ?? 0,
-        descriptionChambre: "",
+        descriptionChambre: item.description ?? "",
         criteresIds: item.specification ?? [],
         photosPresentation: [
           item.image?.[0] ?? "https://placehold.co/800x600?text=Logement",
@@ -89,6 +90,25 @@ export function LogementsPage() {
       maximumFractionDigits: 0,
     }).format(prix)
   }, [])
+
+  const voirDetails = useCallback(async (id: string) => {
+    try {
+      const logement = await logementApi.getOne(id)
+      if (!logement) {
+        toast.error({
+          title: "Logement introuvable",
+          description: "Impossible de charger la fiche demandee.",
+        })
+        return
+      }
+      navigate(`/logements/${id}`)
+    } catch {
+      toast.error({
+        title: "Chargement impossible",
+        description: "La fiche detaillee n'a pas pu etre chargee.",
+      })
+    }
+  }, [navigate, toast])
 
   const totalListe = liste.length
   const totalFiltres = filtres.length
@@ -252,7 +272,7 @@ export function LogementsPage() {
                   <button
                     type="button"
                     className={styles.cardCta}
-                    onClick={() => navigate(`/logements/${l.id}`)}
+                    onClick={() => void voirDetails(l.id)}
                   >
                     <span className={styles.cardCtaLabel}>
                       <Eye size={14} strokeWidth={2} aria-hidden className={styles.cardCtaIcon} />

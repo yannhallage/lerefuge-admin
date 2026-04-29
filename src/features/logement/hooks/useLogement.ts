@@ -21,6 +21,17 @@ export function useCreateLogement() {
   })
 }
 
+export function useUpdateLogement() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: CreateLogementInput }) =>
+      logementApi.update(id, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: LOGEMENT_QUERY_KEY })
+    },
+  })
+}
+
 export function useDeleteLogement() {
   const queryClient = useQueryClient()
   return useMutation({

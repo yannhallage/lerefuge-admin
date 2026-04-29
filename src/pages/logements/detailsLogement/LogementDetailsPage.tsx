@@ -1,9 +1,12 @@
 import { useMemo, useState } from "react"
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react"
-import { CreateLogementForm, type Logement } from "../createLogement"
+import { useQuery } from "@tanstack/react-query"
+import { CreateLogementForm, toCreateLogementInput, type Logement } from "../createLogement"
 import { libellesCriteres } from "../logementCriteres"
-import { loadLogements, saveLogements } from "../logementStorage"
+import { logementApi } from "@/features/logement/api/logement.api"
+import { useDeleteLogement, useUpdateLogement } from "@/features/logement/hooks/useLogement"
+import { useToast } from "@/app/components/ToastProvider"
 import listStyles from "../LogementsPage.module.css"
 import pageStyles from "./LogementDetailsPage.module.css"
 
@@ -11,15 +14,58 @@ export function LogementDetailsPage() {
   const { logementId } = useParams<{ logementId: string }>()
   const navigate = useNavigate()
   const [editionActive, setEditionActive] = useState(false)
-  const [version, setVersion] = useState(0)
+  const updateLogement = useUpdateLogement()
+  const deleteLogement = useDeleteLogement()
+  const toast = useToast()
+  const placeholderImage = "https://placehold.co/800x600?text=Logement"
+
+  const { data: logementApiData, isLoading, isError } = useQuery({
+    queryKey: ["logement", "details", logementId],
+    queryFn: async () => {
+      if (!logementId) return null
+      return logementApi.getOne(logementId)
+    },
+    enabled: Boolean(logementId),
+  })
 
   const logement = useMemo<Logement | null>(() => {
-    if (!logementId) return null
-    return loadLogements().find((item) => item.id === logementId) ?? null
-  }, [logementId, version])
+    if (!logementApiData) return null
+    return {
+      id: logementApiData.logement_id,
+      nom: logementApiData.nom_logement,
+      prix: logementApiData.prix ?? 0,
+      aireChambre: logementApiData.aire_chambre ?? 0,
+      nbrePersonne: logementApiData.nbre_personne ?? undefined,
+      photosPresentation: [
+        logementApiData.image?.[0] ?? placeholderImage,
+        logementApiData.image?.[1] ?? logementApiData.image?.[0] ?? placeholderImage,
+      ],
+      galeriePhotos: logementApiData.image?.slice(2) ?? [],
+      descriptionChambre: logementApiData.description ?? "",
+      criteresIds: logementApiData.specification ?? [],
+    }
+  }, [logementApiData])
 
-  if (!logementId || !logement) {
-    return <Navigate to="/logements" replace />
+  if (!logementId) {
+    return <p className={listStyles.empty}>Identifiant de logement manquant.</p>
+  }
+
+  if (isLoading) {
+    return <p className={listStyles.empty}>Chargement du logement...</p>
+  }
+
+  if (isError || !logement) {
+    return (
+      <div className={listStyles.wrap}>
+        <p className={listStyles.empty}>Impossible de charger ce logement.</p>
+        <div className={pageStyles.topRow}>
+          <Link to="/logements" className={pageStyles.back}>
+            <ArrowLeft size={18} strokeWidth={2} aria-hidden />
+            Retour au catalogue
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   const criteres = libellesCriteres(logement.criteresIds)
@@ -65,9 +111,20 @@ export function LogementDetailsPage() {
             className={pageStyles.deleteBtn}
             onClick={() => {
               if (!window.confirm("Supprimer ce logement ?")) return
-              const restants = loadLogements().filter((item) => item.id !== logement.id)
-              saveLogements(restants)
-              navigate("/logements", { replace: true })
+              const run = async () => {
+                await deleteLogement.mutateAsync(logement.id)
+                toast.success({
+                  title: "Logement supprime",
+                  description: "Le logement a bien ete supprime.",
+                })
+                navigate("/logements", { replace: true })
+              }
+              run().catch(() => {
+                toast.error({
+                  title: "Suppression impossible",
+                  description: "Le logement n'a pas pu etre supprime.",
+                })
+              })
             }}
           >
             <Trash2 size={16} strokeWidth={2} aria-hidden />
@@ -122,12 +179,24 @@ export function LogementDetailsPage() {
           presentation="page"
           mode="edition"
           logementEdition={logement}
+          isSubmitting={updateLogement.isPending}
           onCancel={() => setEditionActive(false)}
           onSaved={(next) => {
-            const actuels = loadLogements()
-            saveLogements(actuels.map((item) => (item.id === next.id ? next : item)))
-            setVersion((v) => v + 1)
-            setEditionActive(false)
+            const run = async () => {
+              const payload = await toCreateLogementInput(next)
+              await updateLogement.mutateAsync({ id: next.id, payload })
+              toast.success({
+                title: "Logement mis a jour",
+                description: "Les modifications ont ete enregistrees.",
+              })
+              setEditionActive(false)
+            }
+            run().catch(() => {
+              toast.error({
+                title: "Mise a jour impossible",
+                description: "Les modifications n'ont pas pu etre enregistrees.",
+              })
+            })
           }}
         />
       ) : null}

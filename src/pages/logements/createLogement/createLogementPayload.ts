@@ -20,6 +20,7 @@ export async function toCreateLogementInput(logement: Logement): Promise<CreateL
 
   return {
     nom_logement: logement.nom,
+    description: logement.descriptionChambre || undefined,
     prix: logement.prix,
     aire_chambre: logement.aireChambre,
     nbre_personne: logement.nbrePersonne,

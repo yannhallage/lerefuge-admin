@@ -13,6 +13,7 @@ export type LogementAdmin = {
 export type LogementItem = {
   logement_id: string
   nom_logement: string
+  description?: string | null
   aire_chambre: number
   prix: number
   nbre_personne?: number | null
@@ -23,6 +24,7 @@ export type LogementItem = {
 
 export type CreateLogementInput = {
   nom_logement: string
+  description?: string
   prix: number
   aire_chambre: number
   nbre_personne?: number
