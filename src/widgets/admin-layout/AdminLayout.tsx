@@ -14,7 +14,6 @@ import {
   LogOut,
   Menu,
   Mountain,
-  Newspaper,
   Settings,
   UtensilsCrossed,
 } from "lucide-react"
@@ -44,7 +43,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { to: "/reservations", label: "Réservations", icon: CalendarCheck2 },
       { to: "/carte", label: "Restaurations", icon: UtensilsCrossed },
       { to: "/activites", label: "Activités", icon: Mountain },
-      { to: "/blog", label: "Blog / actualités", icon: Newspaper },
+      // { to: "/blog", label: "Blog / actualités", icon: Newspaper },
       { to: "/galerie", label: "Galerie", icon: Images },
       // { to: "/contact", label: "Contact", icon: Mail },
     ],
@@ -242,8 +241,8 @@ export function AdminLayout() {
               title="Paramètres"
               onClick={closeMobileMenu}
             >
-              <Settings size={20} strokeWidth={1.75} aria-hidden />
-              {sidebarExpanded ? <span className={styles.iconButtonLabel}>Réglages</span> : null}
+              {/* <Settings size={20} strokeWidth={1.75} aria-hidden />
+              {sidebarExpanded ? <span className={styles.iconButtonLabel}>Réglages</span> : null} */}
             </NavLink>
             <button
               type="button"
